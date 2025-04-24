@@ -37,14 +37,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		8DFBE6022DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubTests" target */ = {
+		8DFBE60C2DB9F5CB0007B995 /* Exceptions for "SubletHub" folder in "SubletHubTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"GoogleService-Info.plist",
 			);
 			target = 8DFBE5C62DB5FA570007B995 /* SubletHubTests */;
 		};
-		8DFBE6032DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubUITests" target */ = {
+		8DFBE60D2DB9F5CB0007B995 /* Exceptions for "SubletHub" folder in "SubletHubUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"GoogleService-Info.plist",
@@ -57,8 +57,8 @@
 		8DFBE5B92DB5FA560007B995 /* SubletHub */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				8DFBE6022DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubTests" target */,
-				8DFBE6032DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubUITests" target */,
+				8DFBE60C2DB9F5CB0007B995 /* Exceptions for "SubletHub" folder in "SubletHubTests" target */,
+				8DFBE60D2DB9F5CB0007B995 /* Exceptions for "SubletHub" folder in "SubletHubUITests" target */,
 			);
 			path = SubletHub;
 			sourceTree = "<group>";
