@@ -7,6 +7,8 @@
 import SwiftUI
 
 struct EditProfileView: View {
+    @Environment(AuthViewModel.self) var authVM
+    
     var body: some View {
         Text("Edit Profile")
     }
