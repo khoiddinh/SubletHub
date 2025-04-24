@@ -6,6 +6,13 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8DFBE5F82DB997A80007B995 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 8DFBE5F72DB997A80007B995 /* FirebaseFirestore */; };
+		8DFBE5FA2DB997A80007B995 /* FirebaseFirestoreCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = 8DFBE5F92DB997A80007B995 /* FirebaseFirestoreCombine-Community */; };
+		8DFBE6052DB9B28E0007B995 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */ = {isa = PBXBuildFile; productRef = 8DFBE6042DB9B28E0007B995 /* FirebaseAnalyticsWithoutAdIdSupport */; };
+		8DFBE6072DB9B2B80007B995 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 8DFBE6062DB9B2B80007B995 /* FirebaseCore */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8DFBE5C82DB5FA570007B995 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -29,9 +36,30 @@
 		8DFBE5D12DB5FA570007B995 /* SubletHubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SubletHubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		8DFBE6022DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"GoogleService-Info.plist",
+			);
+			target = 8DFBE5C62DB5FA570007B995 /* SubletHubTests */;
+		};
+		8DFBE6032DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				"GoogleService-Info.plist",
+			);
+			target = 8DFBE5D02DB5FA570007B995 /* SubletHubUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8DFBE5B92DB5FA560007B995 /* SubletHub */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				8DFBE6022DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubTests" target */,
+				8DFBE6032DB9B2720007B995 /* Exceptions for "SubletHub" folder in "SubletHubUITests" target */,
+			);
 			path = SubletHub;
 			sourceTree = "<group>";
 		};
@@ -52,6 +80,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8DFBE5F82DB997A80007B995 /* FirebaseFirestore in Frameworks */,
+				8DFBE6052DB9B28E0007B995 /* FirebaseAnalyticsWithoutAdIdSupport in Frameworks */,
+				8DFBE6072DB9B2B80007B995 /* FirebaseCore in Frameworks */,
+				8DFBE5FA2DB997A80007B995 /* FirebaseFirestoreCombine-Community in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +144,10 @@
 			);
 			name = SubletHub;
 			packageProductDependencies = (
+				8DFBE5F72DB997A80007B995 /* FirebaseFirestore */,
+				8DFBE5F92DB997A80007B995 /* FirebaseFirestoreCombine-Community */,
+				8DFBE6042DB9B28E0007B995 /* FirebaseAnalyticsWithoutAdIdSupport */,
+				8DFBE6062DB9B2B80007B995 /* FirebaseCore */,
 			);
 			productName = SubletHub;
 			productReference = 8DFBE5B72DB5FA560007B995 /* SubletHub.app */;
@@ -195,6 +231,9 @@
 			);
 			mainGroup = 8DFBE5AE2DB5FA560007B995;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8DFBE5F62DB997A80007B995 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8DFBE5B82DB5FA560007B995 /* Products */;
 			projectDirPath = "";
@@ -552,6 +591,40 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8DFBE5F62DB997A80007B995 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 11.12.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8DFBE5F72DB997A80007B995 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DFBE5F62DB997A80007B995 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		8DFBE5F92DB997A80007B995 /* FirebaseFirestoreCombine-Community */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DFBE5F62DB997A80007B995 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseFirestoreCombine-Community";
+		};
+		8DFBE6042DB9B28E0007B995 /* FirebaseAnalyticsWithoutAdIdSupport */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DFBE5F62DB997A80007B995 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalyticsWithoutAdIdSupport;
+		};
+		8DFBE6062DB9B2B80007B995 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8DFBE5F62DB997A80007B995 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8DFBE5AF2DB5FA560007B995 /* Project object */;
 }
