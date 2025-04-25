@@ -11,7 +11,7 @@ import MapKit
 // TODO: FIX ON CLICK SCALE AND BACKGROUND CHANGE, REDO ANNOTATIONS
 struct MapView: View {
     // default: centered on Philadelphia
-    @State private var position: MapCameraPosition = .region(
+    @State var position: MapCameraPosition = .region(
         MKCoordinateRegion(
             center: CLLocationCoordinate2D(latitude: 39.9526, longitude: -75.1652),
             span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
@@ -19,7 +19,7 @@ struct MapView: View {
     )
 
     @State private var viewModel = ListingViewModel()
-    @State var addressVM = AddressAutocompleteViewModel()
+    @State var addressVM = AddressAutocompleteViewModel() // map view distinct autocomplete vm
     @State private var selectedListingID: String?
     
     var body: some View {
@@ -31,7 +31,7 @@ struct MapView: View {
                     addressVM.searchResults = []
                 }
 
-            SearchBar(addressVM: $addressVM)
+            SearchBar(addressVM: $addressVM, position: $position)
         }
     }
     // TODO: make these clickable and open listing popup (the click box right now is weird)

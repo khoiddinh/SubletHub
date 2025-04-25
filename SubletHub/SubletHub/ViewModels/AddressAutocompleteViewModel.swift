@@ -33,6 +33,7 @@ class AddressAutocompleteViewModel: NSObject, MKLocalSearchCompleterDelegate {
     func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) {
         print("Autocomplete error:", error.localizedDescription)
     }
+    
 }
 
 
