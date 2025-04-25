@@ -1,0 +1,105 @@
+//
+//  UserListingViewModel.swift
+//  SubletHub
+//
+//  Created by Khoi Dinh on 4/24/25.
+//
+import SwiftUI
+import Observation
+
+@Observable
+class UserListingViewModel {
+    let PROJECT_ID = "sublet-hub-52e99"
+
+    var listings: [Listing] = []
+    
+    func loadListings(for userID: String) {
+        guard let url = URL(string: "https://us-central1-\(PROJECT_ID).cloudfunctions.net/getUserListings?userID=\(userID)") else {
+            print("Invalid URL")
+            return
+        }
+        URLSession.shared.dataTask(with: url) { data, _, error in
+            if let error = error {
+                print("Error fetching data: \(error)")
+                return
+            }
+            
+            guard let data = data else {
+                print("No data returned")
+                return
+            }
+            
+            do {
+                let decoded = try JSONDecoder().decode([Listing].self, from: data)
+                DispatchQueue.main.async {
+                    self.listings = decoded
+                }
+            } catch {
+                print("Decoding error:", error)
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("Raw response:", raw)
+                }
+            }
+        }.resume()
+    }
+    
+    func createListing(for userID: String, listing: Listing, completion: @escaping (Result<Void, Error>) -> Void) {
+        guard let url = URL(string: "https://us-central1-\(PROJECT_ID).cloudfunctions.net/createListing") else {
+                print("Invalid URL")
+                completion(.failure(URLError(.badURL)))
+                return
+            }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let payload: [String: Any] = [
+            "userID": userID,
+            "title": listing.title,
+            "price": listing.price,
+            "address": listing.address,
+            "latitude": listing.latitude,
+            "longitude": listing.longitude
+        ]
+
+        request.httpBody = try? JSONSerialization.data(withJSONObject: payload)
+
+        URLSession.shared.dataTask(with: request) { data, _, error in
+            if let error = error {
+                print("Network error: \(error)")
+                completion(.failure(URLError(.badURL)))
+                return
+            }
+
+            guard let data = data else {
+                print("No response data")
+                completion(.failure(URLError(.badServerResponse)))
+                return
+            }
+
+            do {
+                let response = try JSONDecoder().decode([String: String].self, from: data)
+                if let id = response["id"] {
+                    DispatchQueue.main.async {
+                        var newListing = listing
+                        newListing.id = id
+                        newListing.userID = userID
+                        self.listings.insert(newListing, at: 0) // insert at 0th index
+                        completion(.success(()))
+                        print("SUCCESS: Created listing")
+                    }
+                } else {
+                    print("Missing ID in response")
+                    completion(.failure(URLError(.cannotParseResponse)))
+                }
+            } catch {
+                print("JSON decode failed: \(error)")
+                if let raw = String(data: data, encoding: .utf8) {
+                    print("Raw response:", raw)
+                }
+                completion(.failure(error))
+            }
+        }.resume()
+    }
+}

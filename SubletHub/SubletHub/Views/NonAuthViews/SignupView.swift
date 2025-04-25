@@ -10,6 +10,8 @@ struct SignupView: View {
     @Environment(AuthViewModel.self) var authVM
     @Environment(\.dismiss) private var dismiss
 
+    @State private var firstName: String = ""
+    @State private var lastName: String = ""
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
@@ -21,7 +23,18 @@ struct SignupView: View {
             Text("Create Account")
                 .font(.largeTitle)
                 .bold()
-
+            TextField("First Name", text: $firstName)
+                .autocorrectionDisabled()
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+            
+            TextField("Last Name", text: $lastName)
+                .autocorrectionDisabled()
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(8)
+            
             TextField("Email", text: $email)
                 .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
@@ -78,8 +91,8 @@ struct SignupView: View {
             }
 
             do {
-                try await authVM.signUp(email: email, password: password)
-                dismiss() // return to login 
+                try await authVM.signUp(firstName: firstName, lastName: lastName, email: email, password: password)
+                dismiss() // return to login
             } catch {
                 self.error = error.localizedDescription
             }

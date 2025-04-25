@@ -12,19 +12,30 @@ struct AccountView: View {
     
     var body: some View {
         NavigationStack(path: $path) {
-            VStack(spacing: 20) {
-                UserProfileCard()
-
-                Button("Edit Profile") {
-                    path.append("edit")
+            List {
+                Section {
+                    UserProfileCard()
+                        .listRowInsets(EdgeInsets()) // optional: remove padding
                 }
 
-                Button("Help & Support") {
-                    path.append("help")
-                }
+                Section {
+                    NavigationLink(value: "edit") {
+                        Label("Edit Profile", systemImage: "pencil")
+                    }
 
-                Spacer()
+                    NavigationLink(value: "help") {
+                        Label("Help & Support", systemImage: "questionmark.circle")
+                    }
+
+                    Button(role: .destructive) {
+                        authVM.signOut()
+                    } label: {
+                        Label("Sign Out", systemImage: "arrow.right.square")
+                            .foregroundColor(.red)
+                    }
+                }
             }
+            .listStyle(.insetGrouped)
             .navigationDestination(for: String.self) { route in
                 switch route {
                 case "edit": EditProfileView()
@@ -32,9 +43,7 @@ struct AccountView: View {
                 default: Text("Unknown route")
                 }
             }
-            .padding()
             .navigationTitle("Account")
         }
-        
     }
 }
