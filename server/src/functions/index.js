@@ -1,0 +1,81 @@
+/**
+ * Import function triggers from their respective submodules:
+ *
+ * const {onCall} = require("firebase-functions/v2/https");
+ * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
+ *
+ * See a full list of supported triggers at https://firebase.google.com/docs/functions
+ */
+
+const {onRequest} = require("firebase-functions/v2/https");
+const logger = require("firebase-functions/logger");
+const admin = require("firebase-admin");
+
+// Create and deploy your first functions
+// https://firebase.google.com/docs/functions/get-started
+
+// exports.helloWorld = onRequest((request, response) => {
+//   logger.info("Hello logs!", {structuredData: true});
+//   response.send("Hello from Firebase!");
+// });
+admin.initializeApp();
+const db = admin.firestore();
+
+exports.createListing = onRequest(async (req, res) => {
+    try {
+        const data = req.body;
+
+        if (!data.userID) {
+            return res.status(400).send("Missing userID");
+        }
+
+        const doc = await db.collection("listings").add({
+            ...data,
+            createdAt: new Date() // optional: timestamp
+        });
+
+        res.status(200).send({ id: doc.id });
+    } catch (e) {
+        res.status(500).send("Error: " + e.message);
+    }
+});
+
+exports.getListings = onRequest(async (req, res) => {
+    try {
+        const snapshot = await db.collection("listings").get();
+        const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.status(200).json(listings);
+    } catch (e) {
+        res.status(500).send("Error: " + e.message);
+    }
+  });
+
+exports.getUserListings = onRequest(async (req, res) => {
+    const userID = req.query.userID;
+    if (!userID) {
+      return res.status(400).json({ error: "Missing userID" });
+    }
+  
+    try {
+      const snapshot = await db
+        .collection("listings")
+        .where("userID", "==", userID)
+        .get();
+  
+        const listings = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.status(200).json(listings);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+  });
+  
+
+exports.deleteListing = onRequest(async (req, res) => {
+const id = req.query.id;
+try {
+    await db.collection("listings").doc(id).delete();
+    res.status(200).send("Deleted");
+} catch (e) {
+    res.status(500).send("Error: " + e.message);
+}
+});
