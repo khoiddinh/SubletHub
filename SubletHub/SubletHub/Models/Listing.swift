@@ -17,6 +17,11 @@ struct Listing: Identifiable, Codable, Hashable {
     var address: String
     var latitude: Double
     var longitude: Double
+    var totalNumberOfBedrooms: Int
+    var totalNumberOfBathrooms: Int
+    var totalSquareFootage: Int
+    var numberOfBedroomsAvailable: Int
+    var description: String
     
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)

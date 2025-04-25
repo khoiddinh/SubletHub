@@ -9,6 +9,9 @@ import SwiftUI
 struct ListingDetailView: View {
     var listing: Listing
 
+    @State private var userName: String?
+    @State private var userEmail: String?
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
@@ -18,7 +21,7 @@ struct ListingDetailView: View {
                     .fontWeight(.bold)
 
                 // Price
-                Text("$\(listing.price)")
+                Text("$\(listing.price) / month")
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.green)
@@ -35,6 +38,33 @@ struct ListingDetailView: View {
                         .foregroundColor(.primary)
                 }
 
+                // User Info Block
+                if let name = userName, let email = userEmail {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Posted By")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+
+                        Text(name)
+                            .font(.body)
+                            .fontWeight(.medium)
+
+                        Text(email)
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color(.secondarySystemBackground))
+                    )
+
+                } else {
+                    ProgressView("Loading poster info...")
+                        .padding()
+                }
+
                 Spacer()
             }
             .padding()
@@ -47,6 +77,18 @@ struct ListingDetailView: View {
         }
         .navigationTitle("Listing Details")
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            loadUserInfo()
+        }
+    }
+
+    private func loadUserInfo() {
+        UserViewModel.getUserName(userID: listing.userID ?? "") { name in
+            self.userName = name
+        }
+
+        UserViewModel.getUserEmail(userID: listing.userID ?? "") { email in
+            self.userEmail = email
+        }
     }
 }
-

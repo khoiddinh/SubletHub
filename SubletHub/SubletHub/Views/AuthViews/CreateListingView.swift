@@ -14,6 +14,12 @@ struct CreateListingView: View {
     @State private var address: String = ""
     @State private var latitude: Double?
     @State private var longitude: Double?
+    @State private var totalBedrooms: String = ""
+    @State private var totalBathrooms: String = ""
+    @State private var squareFootage: String = ""
+    @State private var availableBedrooms: String = ""
+    @State private var listingDescription: String = ""
+
     @State private var error: String?
     @State private var isLoading: Bool = false
     @State private var suppressAutocomplete = false
@@ -26,6 +32,8 @@ struct CreateListingView: View {
     var body: some View {
         Form {
             listingDetailsSection
+            addressSection
+            descriptionSection
             if let error = error {
                 Text(error)
                     .foregroundColor(.red)
@@ -33,6 +41,7 @@ struct CreateListingView: View {
             }
             createButtonSection
         }
+
         .navigationTitle("New Listing")
     }
 
@@ -42,10 +51,17 @@ struct CreateListingView: View {
             TextField("Title", text: $title)
             TextField("Price", text: $price)
                 .keyboardType(.numberPad)
-            addressSection
+            TextField("Total Bedrooms", text: $totalBedrooms)
+                .keyboardType(.numberPad)
+            TextField("Total Bathrooms", text: $totalBathrooms)
+                .keyboardType(.numberPad)
+            TextField("Square Footage", text: $squareFootage)
+                .keyboardType(.numberPad)
+            TextField("Available Bedrooms", text: $availableBedrooms)
+                .keyboardType(.numberPad)
         }
     }
-    
+
     private var addressSection: some View {
         Section(header: Text("Address")) {
             VStack(alignment: .leading, spacing: 0) {
@@ -61,18 +77,28 @@ struct CreateListingView: View {
                     .textInputAutocapitalization(.never)
                 
                 if !addressVM.searchResults.isEmpty && !address.isEmpty {
-                    List(addressVM.searchResults, id: \.uniqueID) { completion in
+                    List(addressVM.searchResults.prefix(4), id: \.uniqueID) { completion in
                         Button(action: {
                             handleAddressSelection(completion)
                         }) {
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text(completion.title)
-                                    .fontWeight(.semibold)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.primary)
+                                    .padding(.horizontal)
+                                    .padding(.top, 2)
+                                    .padding(.bottom, 1)
                                 Text(completion.subtitle)
-                                    .font(.caption)
-                                    .foregroundColor(.gray)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                                    .padding(.horizontal)
+                                    .padding(.bottom, 0.5)
                             }
-                            .padding(.vertical, 4) // optional spacing
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color.white)
+                            .opacity(0.8)
+                            .cornerRadius(5)
+                            .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 3)
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
@@ -81,13 +107,37 @@ struct CreateListingView: View {
             }
         }
     }
+    
+    private var descriptionSection: some View {
+        Section(header: Text("Description")) {
+            TextEditor(text: $listingDescription)
+                .frame(height: 150)
+                .padding(4)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray.opacity(0.3))
+                )
+        }
+    }
+
+    
 
     private var createButtonSection: some View {
         Section {
             Button(isLoading ? "Creating..." : "Create Listing") {
                 createListing()
             }
-            .disabled(title.isEmpty || price.isEmpty || address.isEmpty || isLoading)
+            .disabled(
+                title.isEmpty ||
+                price.isEmpty ||
+                address.isEmpty ||
+                totalBedrooms.isEmpty ||
+                totalBathrooms.isEmpty ||
+                squareFootage.isEmpty ||
+                availableBedrooms.isEmpty ||
+                listingDescription.isEmpty ||
+                isLoading
+            )
         }
     }
 
@@ -121,13 +171,20 @@ struct CreateListingView: View {
         error = nil
 
         let listing = Listing(
+            id: nil,
             userID: uid,
             title: title,
             price: Int(price) ?? 0,
             address: address,
             latitude: lat,
-            longitude: lng
+            longitude: lng,
+            totalNumberOfBedrooms: Int(totalBedrooms) ?? 0,
+            totalNumberOfBathrooms: Int(totalBathrooms) ?? 0,
+            totalSquareFootage: Int(squareFootage) ?? 0,
+            numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
+            description: listingDescription
         )
+
 
         userListingViewModel.createListing(for: uid, listing: listing) { result in
             DispatchQueue.main.async {

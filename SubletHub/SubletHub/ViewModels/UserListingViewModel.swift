@@ -9,12 +9,11 @@ import Observation
 
 @Observable
 class UserListingViewModel {
-    let PROJECT_ID = "sublet-hub-52e99"
 
     var listings: [Listing] = []
     
     func loadListings(for userID: String) {
-        guard let url = URL(string: "https://us-central1-\(PROJECT_ID).cloudfunctions.net/getUserListings?userID=\(userID)") else {
+        guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/getUserListings?userID=\(userID)") else {
             print("Invalid URL")
             return
         }
@@ -44,7 +43,7 @@ class UserListingViewModel {
     }
     
     func createListing(for userID: String, listing: Listing, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard let url = URL(string: "https://us-central1-\(PROJECT_ID).cloudfunctions.net/createListing") else {
+        guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/createListing") else {
                 print("Invalid URL")
                 completion(.failure(URLError(.badURL)))
                 return

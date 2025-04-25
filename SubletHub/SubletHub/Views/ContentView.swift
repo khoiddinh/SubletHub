@@ -10,7 +10,6 @@ import SwiftUI
 struct ContentView: View {
     @State var authViewModel = AuthViewModel()
     @State var userListingViewModel = UserListingViewModel()
-
     var body: some View {
         Group {
             if authViewModel.user != nil { // if logged in

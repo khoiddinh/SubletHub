@@ -8,14 +8,14 @@ import SwiftUI
 import Foundation
 import CoreLocation
 import Observation
+import FirebaseAuth
 
 @Observable
 class ListingViewModel {
-    let PROJECT_ID: String = "sublet-hub-52e99"
     var listings: [Listing] = []
 
     func fetchData() {
-        guard let url = URL(string: "https://us-central1-\(PROJECT_ID).cloudfunctions.net/getListings") else {
+        guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/getListings") else {
             print("Invalid URL")
             return
         }

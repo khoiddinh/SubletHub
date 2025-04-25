@@ -67,8 +67,37 @@ exports.getUserListings = onRequest(async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
-  });
-  
+});
+
+exports.getUserEmail = onRequest(async (req, res) => {
+    const userID = req.query.userID;
+    if (!userID) {
+        return res.status(400).send("Missing userID");
+    }
+
+    try {
+        const userRecord = await admin.auth().getUser(userID);
+        const email = userRecord.email;
+        res.status(200).json({ email });
+    } catch (e) {
+        res.status(500).send("Error fetching user: " + e.message);
+    }
+});
+
+exports.getUserName = onRequest(async (req, res) => {
+    const userID = req.query.userID;
+    if (!userID) {
+        return res.status(400).send("Missing userID");
+    }
+
+    try {
+        const userRecord = await admin.auth().getUser(userID);
+        const name = userRecord.displayName;
+        res.status(200).json({ name });
+    } catch (e) {
+        res.status(500).send("Error fetching user: " + e.message);
+    }
+});
 
 exports.deleteListing = onRequest(async (req, res) => {
 const id = req.query.id;
