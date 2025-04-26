@@ -7,6 +7,7 @@
 import SwiftUI
 import CoreLocation
 import MapKit
+import FirebaseCore
 
 struct CreateListingView: View {
     @State private var title: String = ""
@@ -19,6 +20,8 @@ struct CreateListingView: View {
     @State private var squareFootage: String = ""
     @State private var availableBedrooms: String = ""
     @State private var listingDescription: String = ""
+    @State private var startDateAvailable: Date = Date()
+    @State private var lastDateAvailable: Date = Date()
 
     @State private var error: String?
     @State private var isLoading: Bool = false
@@ -32,6 +35,7 @@ struct CreateListingView: View {
     var body: some View {
         Form {
             listingDetailsSection
+            dateSection
             addressSection
             descriptionSection
             if let error = error {
@@ -62,6 +66,13 @@ struct CreateListingView: View {
         }
     }
 
+    private var dateSection: some View {
+            Section(header: Text("Availability Dates")) {
+                DatePicker("Start Date Available", selection: $startDateAvailable, displayedComponents: .date)
+                DatePicker("Last Date Available", selection: $lastDateAvailable, displayedComponents: .date)
+            }
+        }
+    
     private var addressSection: some View {
         Section(header: Text("Address")) {
             VStack(alignment: .leading, spacing: 0) {
@@ -182,6 +193,8 @@ struct CreateListingView: View {
             totalNumberOfBathrooms: Int(totalBathrooms) ?? 0,
             totalSquareFootage: Int(squareFootage) ?? 0,
             numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
+            startDateAvailible: startDateAvailable,
+            lastDateAvailible: lastDateAvailable,
             description: listingDescription
         )
 

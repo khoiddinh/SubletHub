@@ -21,6 +21,8 @@ struct Listing: Identifiable, Codable, Hashable {
     var totalNumberOfBathrooms: Int
     var totalSquareFootage: Int
     var numberOfBedroomsAvailable: Int
+    var startDateAvailible: Date
+    var lastDateAvailible: Date
     var description: String
     
     var coordinate: CLLocationCoordinate2D {
