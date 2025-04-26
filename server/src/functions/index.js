@@ -100,67 +100,47 @@ exports.getUserName = onRequest(async (req, res) => {
 });
 
 exports.deleteListing = onRequest(async (req, res) => {
-const id = req.query.id;
-try {
-    await db.collection("listings").doc(id).delete();
-    res.status(200).send("Deleted");
-} catch (e) {
-    res.status(500).send("Error: " + e.message);
-}
-});
+    const id = req.query.id;
+    if (!id) {
+        return res.status(400).send("Missing listing ID");
+    }
 
-exports.updateListing = functions.https.onRequest(async (req, res) => {
     try {
-        const {
-            id,
-            userID,
-            title,
-            price,
-            address,
-            latitude,
-            longitude,
-            totalNumberOfBedrooms,
-            totalNumberOfBathrooms,
-            totalSquareFootage,
-            numberOfBedroomsAvailable,
-            startDateAvailible,
-            lastDateAvailible,
-            description
-        } = req.body;
-
-        if (!id || !userID) {
-            return res.status(400).send("Missing id or userID");
-        }
-
         const listingRef = db.collection("listings").doc(id);
-        const listingDoc = await listingRef.get();
+        const listingSnap = await listingRef.get();
 
-        if (!listingDoc.exists) {
+        if (!listingSnap.exists) {
             return res.status(404).send("Listing not found");
         }
 
-        if (listingDoc.data().userID !== userID) {
-            return res.status(403).send("Unauthorized");
+        const listingData = listingSnap.data();
+        const storageID = listingData.storageID; // 🔥 you stored this earlier
+
+        if (!storageID) {
+            console.log("No storageID found, deleting document only.");
+            await listingRef.delete();
+            return res.status(200).send("Listing deleted without images");
         }
 
-        await listingRef.update({
-            title,
-            price,
-            address,
-            latitude,
-            longitude,
-            totalNumberOfBedrooms,
-            totalNumberOfBathrooms,
-            totalSquareFootage,
-            numberOfBedroomsAvailable,
-            startDateAvailible: admin.firestore.Timestamp.fromMillis(startDateAvailible * 1000),
-            lastDateAvailible: admin.firestore.Timestamp.fromMillis(lastDateAvailible * 1000),
-            description
-        });
+        // Delete images in Firebase Storage under /listings/{storageID}/
+        const bucket = admin.storage().bucket();
+        const folder = `listings/${storageID}`;
 
-        res.status(200).send("Listing updated successfully");
-    } catch (error) {
-        console.error(error);
-        res.status(500).send("Internal Server Error: " + error.message);
+        // List all files in the folder
+        const [files] = await bucket.getFiles({ prefix: folder });
+
+        const deletePromises = files.map(file => file.delete());
+        await Promise.all(deletePromises);
+
+        console.log(`Deleted ${files.length} images from storage folder ${folder}`);
+
+        // Now delete the listing document
+        await listingRef.delete();
+
+        res.status(200).send("Listing and images deleted successfully");
+
+    } catch (e) {
+        console.error("Error deleting listing:", e);
+        res.status(500).send("Error: " + e.message);
     }
 });

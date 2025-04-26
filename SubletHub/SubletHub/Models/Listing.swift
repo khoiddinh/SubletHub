@@ -23,7 +23,9 @@ struct Listing: Identifiable, Codable, Hashable {
     var numberOfBedroomsAvailable: Int
     var startDateAvailible: Date
     var lastDateAvailible: Date
+    var imageURLs: [String]?
     var description: String
+    var storageID: String? // prefix for storage in cloud
     
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)

@@ -7,26 +7,56 @@
 import SwiftUI
 
 struct ListingCard: View {
-    let listing: Listing
+    var listing: Listing
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 150)
-                .cornerRadius(10)
-                .overlay(Text("Image Placeholder").foregroundColor(.gray))
+            if let imageURL = listing.imageURLs?.first, let url = URL(string: imageURL) {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .empty:
+                        ProgressView()
+                            .frame(height: 150)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(12)
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 150)
+                            .frame(maxWidth: .infinity)
+                            .clipped()
+                            .cornerRadius(12)
+                    case .failure:
+                        Image(systemName: "photo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 150)
+                            .frame(maxWidth: .infinity)
+                            .background(Color.gray.opacity(0.2))
+                            .cornerRadius(12)
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            }
 
-            Text(listing.title)
-                .font(.headline)
-
-            Text("$\(listing.price)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(listing.title)
+                    .font(.headline)
+                Text("$\(listing.price) / month")
+                    .font(.subheadline)
+                    .foregroundColor(.green)
+                Text(listing.address)
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
         }
         .padding()
-        .background(Color.white)
+        .background(Color(.systemBackground))
         .cornerRadius(12)
-        .shadow(radius: 4)
+        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
