@@ -31,39 +31,7 @@ struct ListingDetailView: View {
                     .foregroundColor(.green)
 
                 Divider()
-                if let imageURLs = listing.imageURLs, !imageURLs.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            ForEach(imageURLs, id: \.self) { urlString in
-                                AsyncImage(url: URL(string: urlString)) { phase in
-                                    switch phase {
-                                    case .empty:
-                                        ProgressView()
-                                            .frame(width: 250, height: 200)
-                                    case .success(let image):
-                                        image
-                                            .resizable()
-                                            .scaledToFill()
-                                            .frame(width: 250, height: 200)
-                                            .clipped()
-                                            .cornerRadius(10)
-                                    case .failure:
-                                        Image(systemName: "photo")
-                                            .resizable()
-                                            .scaledToFit()
-                                            .frame(width: 250, height: 200)
-                                            .foregroundColor(.gray)
-                                    @unknown default:
-                                        EmptyView()
-                                    }
-                                }
-                            }
-                        }
-                        .padding(.vertical)
-                    }
-                }
-
-                Divider()
+                
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Availability")
