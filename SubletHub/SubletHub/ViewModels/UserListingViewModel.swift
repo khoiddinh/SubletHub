@@ -14,7 +14,7 @@ import FirebaseStorage
 class UserListingViewModel {
     
     var listings: [Listing] = []
-
+    
     // Load listings: first from cache, then from server
     func loadListings(for userID: String) {
         // Load cached user listings
@@ -23,7 +23,7 @@ class UserListingViewModel {
                 self.listings = cached
             }
         }
-
+        
         // Get from network
         guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/getUserListings?userID=\(userID)") else {
             print("Invalid URL")
@@ -54,44 +54,6 @@ class UserListingViewModel {
             }
         }.resume()
     }
-    //
-    //    func uploadImages(for listingID: String, images: [UIImage], completion: @escaping (Result<[String], Error>) -> Void) {
-    //        let storage = Storage.storage()
-    //        var uploadedURLs: [String] = []
-    //        var uploadCount = 0
-    //
-    //        for image in images {
-    //            guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-    //                completion(.failure(URLError(.cannotOpenFile)))
-    //                return
-    //            }
-    //
-    //            let filename = UUID().uuidString
-    //            let ref = storage.reference().child("listings/\(listingID)/\(filename).jpg")
-    //
-    //            ref.putData(imageData, metadata: nil) { _, error in
-    //                if let error = error {
-    //                    print("❌ Upload failed:", error.localizedDescription)
-    //                    completion(.failure(error))
-    //                    return
-    //                }
-    //
-    //                // 🛠 After upload, retry getting download URL
-    //                self.retryGetDownloadURL(ref: ref, attempts: 5) { result in
-    //                    switch result {
-    //                    case .success(let url):
-    //                        uploadedURLs.append(url.absoluteString)
-    //                        uploadCount += 1
-    //                        if uploadCount == images.count {
-    //                            completion(.success(uploadedURLs))
-    //                        }
-    //                    case .failure(let error):
-    //                        completion(.failure(error))
-    //                    }
-    //                }
-    //            }
-    //        }
-    //    }
     
     private func uploadImages(images: [UIImage], storageID: String) async throws {
         let bucket = Storage.storage()
@@ -124,8 +86,7 @@ class UserListingViewModel {
     func createListing(for uid: String,
                        listing: Listing,
                        images: [UIImage],
-                       completion: @escaping (Result<Void, Error>) -> Void)
-    {
+                       completion: @escaping (Result<Void, Error>) -> Void) {
         Task {
             do {
                 if !images.isEmpty {
@@ -169,8 +130,12 @@ class UserListingViewModel {
                     newListing.userID  = uid
                     self.listings.insert(newListing, at: 0)
                     completion(.success(()))
-
-    // Create a new listing and update cache
+                }
+            } catch {
+                
+            }
+        }
+    }
     func createListing(for userID: String,
                        listing: Listing,
                        completion: @escaping (Result<Void, Error>) -> Void) {
@@ -179,11 +144,11 @@ class UserListingViewModel {
             completion(.failure(URLError(.badURL)))
             return
         }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // Build payload
+        
         let payload: [String: Any] = [
             "userID": userID,
             "title": listing.title,
@@ -199,7 +164,7 @@ class UserListingViewModel {
             "lastDateAvailible": listing.lastDateAvailible.timeIntervalSince1970,
             "description": listing.description
         ]
-
+        
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: payload)
         } catch {
@@ -207,18 +172,20 @@ class UserListingViewModel {
             completion(.failure(error))
             return
         }
-
+        
         URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
                 print("Network error on createListing: \(error)")
                 completion(.failure(error))
                 return
             }
+            
             guard let data = data else {
                 print("No response data for createListing")
                 completion(.failure(URLError(.badServerResponse)))
                 return
             }
+            
             do {
                 let response = try JSONDecoder().decode([String: String].self, from: data)
                 if let id = response["id"] {
@@ -226,9 +193,7 @@ class UserListingViewModel {
                         var newListing = listing
                         newListing.id = id
                         newListing.userID = userID
-                        // Insert locally
                         self.listings.insert(newListing, at: 0)
-                        // Update cache
                         PersistenceManager.shared.saveUserListings(self.listings, for: userID)
                         completion(.success(()))
                     }
@@ -236,120 +201,16 @@ class UserListingViewModel {
                     print("Missing ID in createListing response")
                     completion(.failure(URLError(.cannotParseResponse)))
                 }
-                
             } catch {
-                await MainActor.run { completion(.failure(error)) }
-            }
-        }
-    }
-    
-    //    func createListing(for userID: String, listing: Listing, images: [UIImage] = [], completion: @escaping (Result<Void, Error>) -> Void) {
-    //        func sendCreateRequest(with imageURLs: [String]?, tempListingID: String?) {
-    //            guard let url = URL(string:"https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/createListing") else {
-    //                print("Invalid URL")
-    //                completion(.failure(URLError(.badURL)))
-    //                return
-    //            }
-    //
-    //            var request = URLRequest(url: url)
-    //            request.httpMethod = "POST"
-    //            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    //
-    //            var payload: [String: Any] = [
-    //                "userID": userID,
-    //                "title": listing.title,
-    //                "price": listing.price,
-    //                "address": listing.address,
-    //                "latitude": listing.latitude,
-    //                "longitude": listing.longitude,
-    //                "totalNumberOfBedrooms": listing.totalNumberOfBedrooms,
-    //                "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
-    //                "totalSquareFootage": listing.totalSquareFootage,
-    //                "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
-    //                "startDateAvailible": listing.startDateAvailible.timeIntervalSince1970,
-    //                "lastDateAvailible": listing.lastDateAvailible.timeIntervalSince1970,
-    //                "description": listing.description
-    //            ]
-    //
-    //            if let imageURLs = imageURLs {
-    //                payload["imageURLs"] = imageURLs
-    //            }
-    //
-    //            if let tempListingID = tempListingID {
-    //                payload["storageID"] = tempListingID
-    //            }
-    //
-    //            do {
-    //                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-    //            } catch {
-    //                print("Failed to serialize JSON:", error)
-    //                completion(.failure(error))
-    //                return
-    //            }
-    //
-    //            URLSession.shared.dataTask(with: request) { data, _, error in
-    //                if let error = error {
-    //                    print("Network error: \(error)")
-    //                    completion(.failure(error))
-    //                    return
-    //                }
-    //
-    //                guard let data = data else {
-    //                    print("No response data")
-    //                    completion(.failure(URLError(.badServerResponse)))
-    //                    return
-    //                }
-    //
-    //                do {
-    //                    let response = try JSONDecoder().decode([String: String].self, from: data)
-    //                    if let id = response["id"] {
-    //                        DispatchQueue.main.async {
-    //                            var newListing = listing
-    //                            newListing.id = id
-    //                            newListing.userID = userID
-    //                            newListing.imageURLs = imageURLs
-    //                            self.listings.insert(newListing, at: 0)
-    //                            completion(.success(()))
-    //                        }
-    //                    } else {
-    //                        print("Missing ID in response")
-    //                        completion(.failure(URLError(.cannotParseResponse)))
-    //                    }
-    //                } catch {
-    //                    print("JSON decode failed:", error)
-    //                    if let raw = String(data: data, encoding: .utf8) {
-    //                        print("Raw response:", raw)
-    //                    }
-    //                    completion(.failure(error))
-    //                }
-    //            }.resume()
-    //        }
-    //
-    //        // If there are images, upload them first
-    //        if images.isEmpty {
-    //            sendCreateRequest(with: nil, tempListingID: nil)
-    //        } else {
-    //            let tempID = UUID().uuidString
-    //            uploadImages(for: tempID, images: images) { result in
-    //                switch result {
-    //                case .success(let urls):
-    //                    sendCreateRequest(with: urls, tempListingID: tempID)
-    //                case .failure(let error):
-    //                    completion(.failure(error))
-    //                }
-    //            }
-    //        }
-    //    }
-    func editListing(for userID: String, listing: Listing, images: [UIImage] = [], completion: @escaping (Result<Void, Error>) -> Void) {
-                print("JSON decode failed for createListing: \(error)")
-                if let raw = String(data: data, encoding: .utf8) {
-                    print("Raw response: \(raw)")
+                print("JSON decoding error: \(error)")
+                DispatchQueue.main.async {
+                    completion(.failure(error))
                 }
-                completion(.failure(error))
             }
         }.resume()
     }
-
+            
+            
     // Edit an existing listing and update cache
     func editListing(for userID: String,
                      listing: Listing,
@@ -421,19 +282,5 @@ class UserListingViewModel {
                 }
             }.resume()
         }
-        
-        //        if images.isEmpty {
-        //            sendEditRequest(with: listing.imageURLs)
-        //        } else {
-        //            uploadImages(for: listingID, images: images) { result in
-        //                switch result {
-        //                case .success(let urls):
-        //                    sendEditRequest(with: urls)
-        //                case .failure(let error):
-        //                    completion(.failure(error))
-        //                }
-        //            }
-        //        }
-        //    }
     }
 }
