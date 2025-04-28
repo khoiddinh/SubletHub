@@ -29,9 +29,63 @@ struct ListingDetailView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.green)
-
+    
+                
                 Divider()
                 
+                // Additional Details
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Listing Details")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    HStack {
+                        Text("Total Bedrooms:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.totalNumberOfBedrooms)")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    HStack {
+                        Text("Total Bathrooms:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.totalNumberOfBathrooms)")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    HStack {
+                        Text("Square Footage:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.totalSquareFootage) sqft")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    HStack {
+                        Text("Bedrooms Available:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.numberOfBedroomsAvailable)")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                
+                Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Availability")
