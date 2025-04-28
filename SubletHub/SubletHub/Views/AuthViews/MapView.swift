@@ -95,11 +95,6 @@ struct ListingPopupView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            // Placeholder image – swap in AsyncImage when you have URLs
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 180)
-                .overlay(Text("Image Placeholder"))
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(listing.title)
