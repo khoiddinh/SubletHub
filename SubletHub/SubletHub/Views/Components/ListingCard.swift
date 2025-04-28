@@ -16,7 +16,7 @@ struct ListingCard: View {
                     switch phase {
                     case .empty:
                         ProgressView()
-                            .frame(height: 150)
+                            .frame(height: 120)
                             .frame(maxWidth: .infinity)
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(12)
@@ -24,7 +24,7 @@ struct ListingCard: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(height: 150)
+                            .frame(height: 120)
                             .frame(maxWidth: .infinity)
                             .clipped()
                             .cornerRadius(12)
@@ -32,7 +32,7 @@ struct ListingCard: View {
                         Image(systemName: "photo")
                             .resizable()
                             .scaledToFit()
-                            .frame(height: 150)
+                            .frame(height: 120)
                             .frame(maxWidth: .infinity)
                             .background(Color.gray.opacity(0.2))
                             .cornerRadius(12)
@@ -45,15 +45,20 @@ struct ListingCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(listing.title)
                     .font(.headline)
+                    .lineLimit(1)
+
                 Text("$\(listing.price) / month")
                     .font(.subheadline)
                     .foregroundColor(.green)
+
                 Text(listing.address)
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
+            .frame(maxHeight: .infinity, alignment: .top) // stretch text area
         }
+        .frame(maxWidth: .infinity)
         .padding()
         .background(Color(.systemBackground))
         .cornerRadius(12)

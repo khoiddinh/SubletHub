@@ -23,10 +23,6 @@ struct AccountView: View {
                         Label("Edit Profile", systemImage: "pencil")
                     }
 
-                    NavigationLink(value: "help") {
-                        Label("Help & Support", systemImage: "questionmark.circle")
-                    }
-
                     Button(role: .destructive) {
                         authVM.signOut()
                     } label: {
@@ -39,7 +35,6 @@ struct AccountView: View {
             .navigationDestination(for: String.self) { route in
                 switch route {
                 case "edit": EditProfileView()
-                case "help": HelpView()
                 default: Text("Unknown route")
                 }
             }
