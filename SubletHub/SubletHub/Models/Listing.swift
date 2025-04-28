@@ -24,9 +24,10 @@ struct Listing: Identifiable, Codable, Hashable {
     var startDateAvailible: Date
     var lastDateAvailible: Date
     var description: String
-    
+    var imageURLs: [String]?
+
+    // Computed coordinate for use with MapKit
     var coordinate: CLLocationCoordinate2D {
         CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
     }
-    
 }
