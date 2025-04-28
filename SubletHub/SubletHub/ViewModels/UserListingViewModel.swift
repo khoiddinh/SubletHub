@@ -11,19 +11,19 @@ import Observation
 
 @Observable
 class UserListingViewModel {
-    // In-memory listings
+    // The listings it already has
     var listings: [Listing] = []
 
     // Load listings: first from cache, then from server
     func loadListings(for userID: String) {
-        // 1) Load cached user listings
+        // Load cached user listings
         if let cached = PersistenceManager.shared.loadUserListings(for: userID) {
             DispatchQueue.main.async {
                 self.listings = cached
             }
         }
 
-        // 2) Fetch from network
+        // Get from network
         guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/getUserListings?userID=\(userID)") else {
             print("Invalid URL")
             return
@@ -40,9 +40,9 @@ class UserListingViewModel {
             do {
                 let decoded = try JSONDecoder().decode([Listing].self, from: data)
                 DispatchQueue.main.async {
-                    // 3) Update UI
+                    // update the UI
                     self.listings = decoded
-                    // 4) Cache fresh results
+                    // cache fresh results
                     PersistenceManager.shared.saveUserListings(decoded, for: userID)
                 }
             } catch {
