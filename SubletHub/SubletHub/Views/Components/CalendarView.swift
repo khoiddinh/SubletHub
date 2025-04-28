@@ -2,15 +2,7 @@ import SwiftUI
 
 struct CalendarView: View {
     let startDate: Date
-    let endDate: Date
-
-    @State private var selectedDate: Date
-
-    init(startDate: Date, endDate: Date) {
-        self.startDate = startDate
-        self.endDate = endDate
-        _selectedDate = State(initialValue: startDate)
-    }
+    let endDate:   Date
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -20,10 +12,11 @@ struct CalendarView: View {
 
             DatePicker(
                 "",
-                selection: $selectedDate,
-                in: startDate...endDate,
+                selection: .constant(startDate),      // <- constant binding
+                in:        startDate...endDate,
                 displayedComponents: .date
             )
+            .labelsHidden()
             .datePickerStyle(.graphical)
             .disabled(true)
             .frame(maxHeight: 350)

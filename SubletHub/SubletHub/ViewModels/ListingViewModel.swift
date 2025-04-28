@@ -42,15 +42,18 @@ class ListingViewModel {
             }
 
             do {
-                let decodedListings = try JSONDecoder().decode([Listing].self, from: data)
-                DispatchQueue.main.async {
-                    self.listings = decodedListings
-                    PersistenceManager.shared.saveAllListings(decodedListings)
+                        let decoder = JSONDecoder()
+                        decoder.dateDecodingStrategy = .secondsSince1970
+                        let decodedListings = try decoder.decode([Listing].self, from: data)
+
+                        DispatchQueue.main.async {
+                            self.listings = decodedListings
+                            PersistenceManager.shared.saveAllListings(decodedListings)
+                        }
+                    } catch {
+                        print("Decoding error: \(error)")
+                    }
                 }
-            } catch {
-                print("Decoding error: \(error)")
+                .resume()
             }
-        }
-        .resume()
-    }
 }

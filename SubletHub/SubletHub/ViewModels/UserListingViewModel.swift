@@ -38,7 +38,9 @@ class UserListingViewModel {
                 return
             }
             do {
-                let decoded = try JSONDecoder().decode([Listing].self, from: data)
+                let decoder = JSONDecoder()
+                decoder.dateDecodingStrategy = .secondsSince1970
+                let decoded = try decoder.decode([Listing].self, from: data)
                 DispatchQueue.main.async {
                     // update the UI
                     self.listings = decoded
