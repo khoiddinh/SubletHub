@@ -10,7 +10,13 @@ struct CalendarView: View {
     var startDate: Date
     var endDate: Date
 
-    @State private var selectedDate: Date = Date()
+    @State private var selectedDate: Date
+
+    init(startDate: Date, endDate: Date) {
+        self.startDate = startDate
+        self.endDate = endDate
+        _selectedDate = State(initialValue: startDate)
+    }
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -21,16 +27,8 @@ struct CalendarView: View {
 
             DatePicker(
                 "",
-                selection: .constant(startDate),
-                displayedComponents: .date
-            )
-            .datePickerStyle(.graphical)
-            .disabled(true) // make it readonly
-            .frame(maxHeight: 400)
-
-            DatePicker(
-                "",
-                selection: .constant(endDate),
+                selection: $selectedDate,
+                in: startDate...endDate,
                 displayedComponents: .date
             )
             .datePickerStyle(.graphical)
@@ -39,3 +37,4 @@ struct CalendarView: View {
         }
     }
 }
+

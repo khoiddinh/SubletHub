@@ -31,6 +31,11 @@ struct ListingDetailView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.green)
+                
+                // Description
+                Text(listing.description)
+                    .font(.title3)
+            
 
                 Divider()
                 if !listing.image.isEmpty {
@@ -49,8 +54,7 @@ struct ListingDetailView: View {
                     }
                 }
                 else {
-                    ProgressView()
-                    .frame(height: 200)
+                  
                 }
 //                if let imageURLs = listing.imageURLs, !imageURLs.isEmpty {
 //                    ScrollView(.horizontal, showsIndicators: false) {
