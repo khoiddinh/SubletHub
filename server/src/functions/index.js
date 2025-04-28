@@ -109,7 +109,7 @@ try {
 }
 });
 
-exports.updateListing = functions.https.onRequest(async (req, res) => {
+exports.updateListing = onRequest(async (req, res) => {
     try {
         const {
             id,
@@ -153,8 +153,8 @@ exports.updateListing = functions.https.onRequest(async (req, res) => {
             totalNumberOfBathrooms,
             totalSquareFootage,
             numberOfBedroomsAvailable,
-            startDateAvailible: admin.firestore.Timestamp.fromMillis(startDateAvailible * 1000),
-            lastDateAvailible: admin.firestore.Timestamp.fromMillis(lastDateAvailible * 1000),
+            startDateAvailible: admin.firestore.Timestamp.fromSeconds(startDateAvailible),
+            lastDateAvailible: admin.firestore.Timestamp.fromSeconds(lastDateAvailible),
             description
         });
 

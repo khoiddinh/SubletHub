@@ -41,8 +41,17 @@ struct UserViewModel {
             }
 
             do {
+                if let rawString = String(data: data, encoding: .utf8) {
+                    print("Raw server response for user name:", rawString)
+                }
+                
                 let result = try JSONDecoder().decode([String: String].self, from: data)
-                completion(result["name"])
+                if let name = result["name"] {
+                    completion(name)
+                } else {
+                    print("No name found in response dictionary")
+                    completion(nil)
+                }
             } catch {
                 print("Error decoding:", error)
                 completion(nil)

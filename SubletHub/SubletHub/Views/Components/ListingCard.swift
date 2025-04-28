@@ -11,11 +11,6 @@ struct ListingCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 150)
-                .cornerRadius(10)
-                .overlay(Text("Image Placeholder").foregroundColor(.gray))
 
             Text(listing.title)
                 .font(.headline)
