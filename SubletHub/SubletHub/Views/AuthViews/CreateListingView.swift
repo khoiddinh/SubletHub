@@ -53,9 +53,9 @@ struct CreateListingView: View {
         }
 
         .navigationTitle("New Listing")
-        .onChange(of: selectedPhotos) { newItems in
+        .onChange(of: selectedPhotos) {
             Task {
-                selectedImages = await loadImages(from: newItems)
+                selectedImages = await loadImages(from: selectedPhotos)
             }
         }
     }
@@ -212,6 +212,8 @@ struct CreateListingView: View {
             self.error = "Please select a valid address."
             return
         }
+        
+        let storageID = UUID().uuidString
 
         isLoading = true
         error = nil
@@ -230,7 +232,10 @@ struct CreateListingView: View {
             numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
             startDateAvailible: startDateAvailable,
             lastDateAvailible: lastDateAvailable,
-            description: listingDescription
+//            image: selectedImages,
+            description: listingDescription,
+            storageID: storageID
+            
         )
 
 
