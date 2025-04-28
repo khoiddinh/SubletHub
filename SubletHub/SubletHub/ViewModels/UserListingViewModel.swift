@@ -105,8 +105,8 @@ class UserListingViewModel {
                     "totalNumberOfBathrooms":     listing.totalNumberOfBathrooms,
                     "totalSquareFootage":         listing.totalSquareFootage,
                     "numberOfBedroomsAvailable":  listing.numberOfBedroomsAvailable,
-                    "startDateAvailible":         Int(listing.startDateAvailible.timeIntervalSince1970 * 1_000),
-                    "lastDateAvailible":          Int(listing.lastDateAvailible.timeIntervalSince1970 * 1_000),
+                    "startDateAvailible":         Int(listing.startDateAvailible.timeIntervalSince1970),
+                    "lastDateAvailible":          Int(listing.lastDateAvailible.timeIntervalSince1970),
                     "description":                listing.description,
                     "storageID":                  listing.storageID!
                 ]
