@@ -31,12 +31,8 @@ struct ListingDetailView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                     .foregroundColor(.green)
+    
                 
-                // Description
-                Text(listing.description)
-                    .font(.title3)
-            
-
                 Divider()
                 if !listing.image.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -53,41 +49,59 @@ struct ListingDetailView: View {
                         .padding(.vertical)
                     }
                 }
-                else {
-                  
-                }
-//                if let imageURLs = listing.imageURLs, !imageURLs.isEmpty {
-//                    ScrollView(.horizontal, showsIndicators: false) {
-//                        HStack(spacing: 10) {
-//                            ForEach(imageURLs, id: \.self) { urlString in
-//                                AsyncImage(url: URL(string: urlString)) { phase in
-//                                    switch phase {
-//                                    case .empty:
-//                                        ProgressView()
-//                                            .frame(width: 250, height: 200)
-//                                    case .success(let image):
-//                                        image
-//                                            .resizable()
-//                                            .scaledToFill()
-//                                            .frame(width: 250, height: 200)
-//                                            .clipped()
-//                                            .cornerRadius(10)
-//                                    case .failure:
-//                                        Image(systemName: "photo")
-//                                            .resizable()
-//                                            .scaledToFit()
-//                                            .frame(width: 250, height: 200)
-//                                            .foregroundColor(.gray)
-//                                    @unknown default:
-//                                        EmptyView()
-//                                    }
-//                                }
-//                            }
-//                        }
-//                        .padding(.vertical)
-//                    }
-//                }
 
+                // Additional Details
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Listing Details")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    HStack {
+                        Text("Total Bedrooms:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.totalNumberOfBedrooms)")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    HStack {
+                        Text("Total Bathrooms:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.totalNumberOfBathrooms)")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    HStack {
+                        Text("Square Footage:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.totalSquareFootage) sqft")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    HStack {
+                        Text("Bedrooms Available:")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                        Spacer()
+                        Text("\(listing.numberOfBedroomsAvailable)")
+                            .font(.body)
+                            .foregroundColor(.primary)
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                
                 Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {
