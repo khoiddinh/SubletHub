@@ -5,9 +5,11 @@
 //  Created by Khoi Dinh on 4/24/25.
 //
 import SwiftUI
+import FirebaseStorage
+import UIKit
 
 struct ListingDetailView: View {
-    var listing: Listing
+    @State var listing: Listing
 
     @State private var userName: String?
     @State private var userEmail: String?
@@ -32,7 +34,24 @@ struct ListingDetailView: View {
     
                 
                 Divider()
-                
+
+                if !listing.image.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 10) {
+                            ForEach(Array(listing.image.enumerated()), id: \.offset) { (_, uiImage) in
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 250, height: 200)
+                                    .clipped()
+                                    .cornerRadius(10)
+                            }
+                        }
+                        .padding(.vertical)
+                    }
+                }
+
+
                 // Additional Details
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Listing Details")
@@ -84,8 +103,7 @@ struct ListingDetailView: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color(.secondarySystemBackground))
                 )
-                
-                Divider()
+                                Divider()
                 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Availability")
@@ -178,6 +196,9 @@ struct ListingDetailView: View {
             )
             .padding()
         }
+        .task {
+            listing = await listing.loadingImages()
+        }
         .navigationTitle("Listing Details")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
@@ -190,6 +211,7 @@ struct ListingDetailView: View {
             Text("Are you sure you want to permanently delete this listing?")
         }
     }
+    
 
     private func loadUserInfo() {
         UserViewModel.getUserName(userID: listing.userID ?? "") { name in
@@ -242,5 +264,31 @@ struct ListingDetailView: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         return formatter.string(from: date)
+    }
+}
+
+extension Listing {
+
+    func loadingImages() async -> Listing {
+        guard let sid = storageID else { return self }
+
+        let folderRef = Storage.storage()
+                               .reference(withPath: "listings/\(sid)")
+        var copy = self                                         // ← var
+
+        do {
+            let result = try await folderRef.listAll()
+            let sorted = result.items.sorted { $0.name < $1.name }
+
+            for ref in sorted {
+                if let data = try? await ref.data(maxSize: 4 * 1024 * 1024),
+                   let img  = UIImage(data: data) {
+                    copy.image.append(img)
+                }
+            }
+        } catch {
+            print("image error:", error.localizedDescription)
+        }
+        return copy
     }
 }

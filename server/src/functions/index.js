@@ -100,13 +100,49 @@ exports.getUserName = onRequest(async (req, res) => {
 });
 
 exports.deleteListing = onRequest(async (req, res) => {
-const id = req.query.id;
-try {
-    await db.collection("listings").doc(id).delete();
-    res.status(200).send("Deleted");
-} catch (e) {
-    res.status(500).send("Error: " + e.message);
-}
+    const id = req.query.id;
+    if (!id) {
+        return res.status(400).send("Missing listing ID");
+    }
+
+    try {
+        const listingRef = db.collection("listings").doc(id);
+        const listingSnap = await listingRef.get();
+
+        if (!listingSnap.exists) {
+            return res.status(404).send("Listing not found");
+        }
+
+        const listingData = listingSnap.data();
+        const storageID = listingData.storageID; // 🔥 you stored this earlier
+
+        if (!storageID) {
+            console.log("No storageID found, deleting document only.");
+            await listingRef.delete();
+            return res.status(200).send("Listing deleted without images");
+        }
+
+        // Delete images in Firebase Storage under /listings/{storageID}/
+        const bucket = admin.storage().bucket();
+        const folder = `listings/${storageID}`;
+
+        // List all files in the folder
+        const [files] = await bucket.getFiles({ prefix: folder });
+
+        const deletePromises = files.map(file => file.delete());
+        await Promise.all(deletePromises);
+
+        console.log(`Deleted ${files.length} images from storage folder ${folder}`);
+
+        // Now delete the listing document
+        await listingRef.delete();
+
+        res.status(200).send("Listing and images deleted successfully");
+
+    } catch (e) {
+        console.error("Error deleting listing:", e);
+        res.status(500).send("Error: " + e.message);
+    }
 });
 
 exports.updateListing = onRequest(async (req, res) => {
@@ -153,8 +189,8 @@ exports.updateListing = onRequest(async (req, res) => {
             totalNumberOfBathrooms,
             totalSquareFootage,
             numberOfBedroomsAvailable,
-            startDateAvailible: admin.firestore.Timestamp.fromSeconds(startDateAvailible),
-            lastDateAvailible: admin.firestore.Timestamp.fromSeconds(lastDateAvailible),
+            startDateAvailible: admin.firestore.Timestamp.fromMillis(startDateAvailible),
+            lastDateAvailible: admin.firestore.Timestamp.fromMillis(lastDateAvailible),
             description
         });
 

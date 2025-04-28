@@ -8,12 +8,13 @@
 import SwiftUI
 import Foundation
 import Observation
+import FirebaseStorage
 
 @Observable
 class UserListingViewModel {
-    // The listings it already has
+    
     var listings: [Listing] = []
-
+    
     // Load listings: first from cache, then from server
     func loadListings(for userID: String) {
         // Load cached user listings
@@ -22,7 +23,7 @@ class UserListingViewModel {
                 self.listings = cached
             }
         }
-
+        
         // Get from network
         guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/getUserListings?userID=\(userID)") else {
             print("Invalid URL")
@@ -53,8 +54,88 @@ class UserListingViewModel {
             }
         }.resume()
     }
-
-    // Create a new listing and update cache
+    
+    private func uploadImages(images: [UIImage], storageID: String) async throws {
+        let bucket = Storage.storage()
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            for (index, uiImage) in images.enumerated() {
+                guard let data = uiImage.jpegData(compressionQuality: 0.80) else { continue }
+                let path = "listings/\(storageID)/photo_\(index).jpg"
+                group.addTask {
+                    try await bucket.reference(withPath: path)
+                        .putDataAsync(data, metadata: nil)
+                }
+            }
+            try await group.waitForAll()
+        }
+    }
+    
+    private func retryGetDownloadURL(ref: StorageReference, attempts: Int, completion: @escaping (Result<URL, Error>) -> Void) {
+        ref.downloadURL { url, error in
+            if let url = url {
+                completion(.success(url))
+            } else if attempts > 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { // wait 300ms
+                    self.retryGetDownloadURL(ref: ref, attempts: attempts - 1, completion: completion)
+                }
+            } else {
+                completion(.failure(error ?? URLError(.fileDoesNotExist)))
+            }
+        }
+    }
+    func createListing(for uid: String,
+                       listing: Listing,
+                       images: [UIImage],
+                       completion: @escaping (Result<Void, Error>) -> Void) {
+        Task {
+            do {
+                if !images.isEmpty {
+                    try await uploadImages(images: images,
+                                           storageID: listing.storageID!)
+                }
+                
+                let body: [String: Any] = [
+                    "userID":                     uid,
+                    "title":                      listing.title,
+                    "price":                      listing.price,
+                    "address":                    listing.address,
+                    "latitude":                   listing.latitude,
+                    "longitude":                  listing.longitude,
+                    "totalNumberOfBedrooms":      listing.totalNumberOfBedrooms,
+                    "totalNumberOfBathrooms":     listing.totalNumberOfBathrooms,
+                    "totalSquareFootage":         listing.totalSquareFootage,
+                    "numberOfBedroomsAvailable":  listing.numberOfBedroomsAvailable,
+                    "startDateAvailible":         Int(listing.startDateAvailible.timeIntervalSince1970 * 1_000),
+                    "lastDateAvailible":          Int(listing.lastDateAvailible.timeIntervalSince1970 * 1_000),
+                    "description":                listing.description,
+                    "storageID":                  listing.storageID!
+                ]
+                guard let url = URL(string:
+                                        "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/createListing")
+                else { throw URLError(.badURL) }
+                
+                var req = URLRequest(url: url)
+                req.httpMethod = "POST"
+                req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+                req.httpBody = try JSONSerialization.data(withJSONObject: body)
+                
+                let (data, _) = try await URLSession.shared.data(for: req)
+                let resp = try JSONDecoder().decode([String:String].self, from: data)
+                guard let docID = resp["id"] else {
+                    throw URLError(.cannotParseResponse)
+                }
+                await MainActor.run {
+                    var newListing = listing
+                    newListing.id      = docID
+                    newListing.userID  = uid
+                    self.listings.insert(newListing, at: 0)
+                    completion(.success(()))
+                }
+            } catch {
+                
+            }
+        }
+    }
     func createListing(for userID: String,
                        listing: Listing,
                        completion: @escaping (Result<Void, Error>) -> Void) {
@@ -63,11 +144,11 @@ class UserListingViewModel {
             completion(.failure(URLError(.badURL)))
             return
         }
+        
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        // Build payload
+        
         let payload: [String: Any] = [
             "userID": userID,
             "title": listing.title,
@@ -83,7 +164,7 @@ class UserListingViewModel {
             "lastDateAvailible": listing.lastDateAvailible.timeIntervalSince1970,
             "description": listing.description
         ]
-
+        
         do {
             request.httpBody = try JSONSerialization.data(withJSONObject: payload)
         } catch {
@@ -91,18 +172,20 @@ class UserListingViewModel {
             completion(.failure(error))
             return
         }
-
+        
         URLSession.shared.dataTask(with: request) { data, _, error in
             if let error = error {
                 print("Network error on createListing: \(error)")
                 completion(.failure(error))
                 return
             }
+            
             guard let data = data else {
                 print("No response data for createListing")
                 completion(.failure(URLError(.badServerResponse)))
                 return
             }
+            
             do {
                 let response = try JSONDecoder().decode([String: String].self, from: data)
                 if let id = response["id"] {
@@ -110,9 +193,7 @@ class UserListingViewModel {
                         var newListing = listing
                         newListing.id = id
                         newListing.userID = userID
-                        // Insert locally
                         self.listings.insert(newListing, at: 0)
-                        // Update cache
                         PersistenceManager.shared.saveUserListings(self.listings, for: userID)
                         completion(.success(()))
                     }
@@ -121,15 +202,15 @@ class UserListingViewModel {
                     completion(.failure(URLError(.cannotParseResponse)))
                 }
             } catch {
-                print("JSON decode failed for createListing: \(error)")
-                if let raw = String(data: data, encoding: .utf8) {
-                    print("Raw response: \(raw)")
+                print("JSON decoding error: \(error)")
+                DispatchQueue.main.async {
+                    completion(.failure(error))
                 }
-                completion(.failure(error))
             }
         }.resume()
     }
-
+            
+            
     // Edit an existing listing and update cache
     func editListing(for userID: String,
                      listing: Listing,
@@ -138,61 +219,70 @@ class UserListingViewModel {
             completion(.failure(URLError(.badURL)))
             return
         }
-        // Confirm ownership
+        
         guard listings.contains(where: { $0.id == listingID && $0.userID == userID }) else {
             print("Edit denied: Listing does not belong to user.")
             completion(.failure(URLError(.userAuthenticationRequired)))
             return
         }
-        guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/updateListing") else {
-            print("Invalid URL for updateListing")
-            completion(.failure(URLError(.badURL)))
-            return
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        let payload: [String: Any] = [
-            "id": listingID,
-            "userID": userID,
-            "title": listing.title,
-            "price": listing.price,
-            "address": listing.address,
-            "latitude": listing.latitude,
-            "longitude": listing.longitude,
-            "totalNumberOfBedrooms": listing.totalNumberOfBedrooms,
-            "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
-            "totalSquareFootage": listing.totalSquareFootage,
-            "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
-            "startDateAvailible": listing.startDateAvailible.timeIntervalSince1970,
-            "lastDateAvailible": listing.lastDateAvailible.timeIntervalSince1970,
-            "description": listing.description
-        ]
-
-        do {
-            request.httpBody = try JSONSerialization.data(withJSONObject: payload)
-        } catch {
-            print("Failed to serialize JSON for updateListing: \(error)")
-            completion(.failure(error))
-            return
-        }
-
-        URLSession.shared.dataTask(with: request) { _, _, error in
-            if let error = error {
-                print("Network error on updateListing: \(error)")
+        
+        func sendEditRequest(with imageURLs: [String]?) {
+            guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/updateListing")
+            else {
+                print("Invalid URL")
+                completion(.failure(URLError(.badURL)));
+                return
+            }
+            
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
+            
+            var payload: [String: Any] = [
+                "id": listingID,
+                "userID": userID,
+                "title": listing.title,
+                "price": listing.price,
+                "address": listing.address,
+                "latitude": listing.latitude,
+                "longitude": listing.longitude,
+                "totalNumberOfBedrooms": listing.totalNumberOfBedrooms,
+                "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
+                "totalSquareFootage": listing.totalSquareFootage,
+                "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
+                "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970),
+                "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970),
+                "description": listing.description,
+            ]
+            
+//            if let imageURLs = imageURLs {
+//                payload["imageURLs"] = imageURLs
+//            }
+            
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: payload)
+            } catch {
+                print("Failed to serialize JSON:", error)
                 completion(.failure(error))
                 return
             }
-            DispatchQueue.main.async {
-                // Update in-memory
-                if let index = self.listings.firstIndex(where: { $0.id == listingID }) {
-                    self.listings[index] = listing
-                    // Update cache
-                    PersistenceManager.shared.saveUserListings(self.listings, for: userID)
+            
+            URLSession.shared.dataTask(with: request) { data, _, error in
+                if let error = error {
+                    print("Network error editing listing:", error.localizedDescription)
+                    completion(.failure(error))
+                    return
                 }
-                completion(.success(()))
-            }
-        }.resume()
+                DispatchQueue.main.async {
+                    if let i = self.listings.firstIndex(where:{ $0.id == listingID }) {
+                            var copy = listing
+//                            copy.imageURLs = imageURLs
+                            self.listings[i] = copy
+                        }
+                        completion(.success(()))
+                }
+            }.resume()
+        }
     }
 }

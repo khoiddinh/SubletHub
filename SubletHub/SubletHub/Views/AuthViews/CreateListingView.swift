@@ -8,6 +8,8 @@ import SwiftUI
 import CoreLocation
 import MapKit
 import FirebaseCore
+import PhotosUI
+
 
 struct CreateListingView: View {
     @State private var title: String = ""
@@ -22,6 +24,9 @@ struct CreateListingView: View {
     @State private var listingDescription: String = ""
     @State private var startDateAvailable: Date = Date()
     @State private var lastDateAvailable: Date = Date()
+    
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var selectedImages: [UIImage] = []
 
     @State private var error: String?
     @State private var isLoading: Bool = false
@@ -37,6 +42,7 @@ struct CreateListingView: View {
             listingDetailsSection
             dateSection
             addressSection
+            imageSection
             descriptionSection
             if let error = error {
                 Text(error)
@@ -47,6 +53,11 @@ struct CreateListingView: View {
         }
 
         .navigationTitle("New Listing")
+        .onChange(of: selectedPhotos) {
+            Task {
+                selectedImages = await loadImages(from: selectedPhotos)
+            }
+        }
     }
 
 
@@ -119,6 +130,30 @@ struct CreateListingView: View {
         }
     }
     
+    private var imageSection: some View {
+        Section(header: Text("Images")) {
+            PhotosPicker(selection: $selectedPhotos, maxSelectionCount: 5, matching: .images) {
+                Label("Select Images", systemImage: "photo.on.rectangle")
+            }
+            
+            if !selectedImages.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(selectedImages, id: \.self) { image in
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: 100, height: 100)
+                                .clipped()
+                                .cornerRadius(8)
+                        }
+                    }
+                    .padding(.top, 5)
+                }
+            }
+        }
+    }
+    
     private var descriptionSection: some View {
         Section(header: Text("Description")) {
             TextEditor(text: $listingDescription)
@@ -177,6 +212,8 @@ struct CreateListingView: View {
             self.error = "Please select a valid address."
             return
         }
+        
+        let storageID = UUID().uuidString
 
         isLoading = true
         error = nil
@@ -195,11 +232,14 @@ struct CreateListingView: View {
             numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
             startDateAvailible: startDateAvailable,
             lastDateAvailible: lastDateAvailable,
-            description: listingDescription
+//            image: selectedImages,
+            description: listingDescription,
+            storageID: storageID
+            
         )
 
 
-        userListingViewModel.createListing(for: uid, listing: listing) { result in
+        userListingViewModel.createListing(for: uid, listing: listing, images: selectedImages) { result in
             DispatchQueue.main.async {
                 isLoading = false
                 switch result {
@@ -210,6 +250,16 @@ struct CreateListingView: View {
                 }
             }
         }
+    }
+    private func loadImages(from items: [PhotosPickerItem]) async -> [UIImage] {
+        var images: [UIImage] = []
+        for item in items {
+            if let data = try? await item.loadTransferable(type: Data.self),
+               let image = UIImage(data: data) {
+                images.append(image)
+            }
+        }
+        return images
     }
 }
 
