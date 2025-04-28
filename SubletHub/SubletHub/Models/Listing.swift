@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseFirestore
 import CoreLocation
+import FirebaseStorage
 
 struct Listing: Identifiable, Codable, Hashable {
     var id: String?
@@ -40,5 +41,26 @@ struct Listing: Identifiable, Codable, Hashable {
                 startDateAvailible, lastDateAvailible,
                 storageID, description
        }
-    
+    func loadingImages() async -> Listing {
+        guard let sid = storageID else { return self }
+
+        let folderRef = Storage.storage()
+                               .reference(withPath: "listings/\(sid)")
+        var copy = self                                  
+
+        do {
+            let result = try await folderRef.listAll()
+            let sorted = result.items.sorted { $0.name < $1.name }
+
+            for ref in sorted {
+                if let data = try? await ref.data(maxSize: 4 * 1024 * 1024),
+                   let img  = UIImage(data: data) {
+                    copy.image.append(img)
+                }
+            }
+        } catch {
+            print("image error:", error.localizedDescription)
+        }
+        return copy
+    }
 }

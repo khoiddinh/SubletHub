@@ -35,7 +35,7 @@ class AuthViewModel {
             try await updateProfile(firstName: firstName, lastName: lastName)
             
         } catch {
-            print("Signup error:", error) // 👈 this shows the real message
+            print("Signup error:", error)
             self.error = error.localizedDescription
         }
     }
