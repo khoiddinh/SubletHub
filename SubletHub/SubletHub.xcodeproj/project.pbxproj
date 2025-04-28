@@ -38,9 +38,22 @@
 		8DFBE5D12DB5FA570007B995 /* SubletHubUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SubletHubUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		65DB3EEF2DC018960049FB88 /* Exceptions for "SubletHub" folder in "SubletHub" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8DFBE5B62DB5FA560007B995 /* SubletHub */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		8DFBE5B92DB5FA560007B995 /* SubletHub */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				65DB3EEF2DC018960049FB88 /* Exceptions for "SubletHub" folder in "SubletHub" target */,
+			);
 			path = SubletHub;
 			sourceTree = "<group>";
 		};
@@ -422,6 +435,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"SubletHub/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SubletHub/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We Need Access to Photos";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -450,6 +465,8 @@
 				DEVELOPMENT_ASSET_PATHS = "\"SubletHub/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = SubletHub/Info.plist;
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "We Need Access to Photos";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

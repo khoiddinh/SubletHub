@@ -275,15 +275,17 @@ class UserListingViewModel {
         }
         
         func sendEditRequest(with imageURLs: [String]?) {
-            guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/updateListing") else {
+            guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/updateListing")
+            else {
                 print("Invalid URL")
-                completion(.failure(URLError(.badURL)))
+                completion(.failure(URLError(.badURL)));
                 return
             }
             
             var request = URLRequest(url: url)
             request.httpMethod = "POST"
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+            
             
             var payload: [String: Any] = [
                 "id": listingID,
@@ -297,14 +299,14 @@ class UserListingViewModel {
                 "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
                 "totalSquareFootage": listing.totalSquareFootage,
                 "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
-                "startDateAvailible": listing.startDateAvailible.timeIntervalSince1970,
-                "lastDateAvailible": listing.lastDateAvailible.timeIntervalSince1970,
+                "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970),
+                "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970),
                 "description": listing.description,
             ]
             
-            if let imageURLs = imageURLs {
-                payload["imageURLs"] = imageURLs
-            }
+//            if let imageURLs = imageURLs {
+//                payload["imageURLs"] = imageURLs
+//            }
             
             do {
                 request.httpBody = try JSONSerialization.data(withJSONObject: payload)
@@ -321,12 +323,12 @@ class UserListingViewModel {
                     return
                 }
                 DispatchQueue.main.async {
-                    if let index = self.listings.firstIndex(where: { $0.id == listingID }) {
-                        var updatedListing = listing
-                        updatedListing.imageURLs = imageURLs // ✅ set images
-                        self.listings[index] = updatedListing
-                    }
-                    completion(.success(()))
+                    if let i = self.listings.firstIndex(where:{ $0.id == listingID }) {
+                            var copy = listing
+//                            copy.imageURLs = imageURLs
+                            self.listings[i] = copy
+                        }
+                        completion(.success(()))
                 }
             }.resume()
         }

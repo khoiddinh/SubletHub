@@ -144,3 +144,59 @@ exports.deleteListing = onRequest(async (req, res) => {
         res.status(500).send("Error: " + e.message);
     }
 });
+
+exports.updateListing = onRequest(async (req, res) => {
+    try {
+        const {
+            id,
+            userID,
+            title,
+            price,
+            address,
+            latitude,
+            longitude,
+            totalNumberOfBedrooms,
+            totalNumberOfBathrooms,
+            totalSquareFootage,
+            numberOfBedroomsAvailable,
+            startDateAvailible,
+            lastDateAvailible,
+            description
+        } = req.body;
+
+        if (!id || !userID) {
+            return res.status(400).send("Missing id or userID");
+        }
+
+        const listingRef = db.collection("listings").doc(id);
+        const listingDoc = await listingRef.get();
+
+        if (!listingDoc.exists) {
+            return res.status(404).send("Listing not found");
+        }
+
+        if (listingDoc.data().userID !== userID) {
+            return res.status(403).send("Unauthorized");
+        }
+
+        await listingRef.update({
+            title,
+            price,
+            address,
+            latitude,
+            longitude,
+            totalNumberOfBedrooms,
+            totalNumberOfBathrooms,
+            totalSquareFootage,
+            numberOfBedroomsAvailable,
+            startDateAvailible: admin.firestore.Timestamp.fromMillis(startDateAvailible),
+            lastDateAvailible: admin.firestore.Timestamp.fromMillis(lastDateAvailible),
+            description
+        });
+
+        res.status(200).send("Listing updated successfully");
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error: " + error.message);
+    }
+});
