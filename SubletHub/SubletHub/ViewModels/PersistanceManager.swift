@@ -12,9 +12,9 @@ class PersistenceManager {
   private init() {}
 
   private func url(for filename: String) -> URL {
-    let docs = FileManager.default
-      .urls(for: .documentDirectory, in: .userDomainMask)[0]
-    return docs.appendingPathComponent(filename)
+      let docs = FileManager.default
+          .urls(for: .documentDirectory, in: .userDomainMask)[0]
+      return docs.appendingPathComponent(filename)
   }
 
   // Generic save

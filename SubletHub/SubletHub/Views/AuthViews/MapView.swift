@@ -78,11 +78,6 @@ struct MapView: View {
         }
         .offset(y: -20)
         .contentShape(Rectangle())
-        .onTapGesture {
-            withAnimation {
-                selectedListing = listing
-            }
-        }
         .scaleEffect(selectedListing?.id == listing.id ? 1.2 : 1.0)
     }
     
@@ -101,10 +96,8 @@ struct ListingPopupView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text(loadedListing.title)
-                .font(.title3)
-                .fontWeight(.bold)
-        
+            ListingCard(listing: loadedListing)
+
             if !loadedListing.image.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
@@ -121,43 +114,11 @@ struct ListingPopupView: View {
                 }
             }
 
-            VStack(alignment: .leading, spacing: 8) {
-
-                
-                Text("$\(loadedListing.price) / month")
-                    .font(.headline)
-                    .foregroundColor(.green)
-                HStack {
-                    Text("\(loadedListing.numberOfBedroomsAvailable) bd")
-                        .font(.subheadline)
-                    Text("•")
-                        .font(.subheadline)
-                    Text("\(loadedListing.totalNumberOfBathrooms) ba")
-                        .font(.subheadline)
-                    Text("•")
-                        .font(.subheadline)
-                    Text("\(loadedListing.totalSquareFootage) ft²")
-                        .font(.subheadline)
-                }
-                .font(.footnote)
-                .foregroundColor(.secondary)
-            }
-            .padding()
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
-            )
-            
 
             Spacer()
 
-            NavigationLink(destination: ListingDetailView(listing: loadedListing)) {
-                Text("View Details")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
+            NavigationLink("View Details") {
+                MapListingDetailView(listing: loadedListing)
             }
             .buttonStyle(.borderedProminent)
         }

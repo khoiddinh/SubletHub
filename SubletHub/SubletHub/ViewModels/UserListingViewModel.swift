@@ -164,7 +164,8 @@ class UserListingViewModel {
             "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
             "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
             "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978335600),
-            "description": listing.description
+            "description": listing.description,
+            "storageID": listing.storageID ?? ""
         ]
         
         do {
@@ -213,7 +214,7 @@ class UserListingViewModel {
     }
             
             
-    // Edit an existing listing and update cache
+    // Edit an existing listing and update cache, TODO: can't edit images
     func editListing(for userID: String,
                      listing: Listing,
                      completion: @escaping (Result<Void, Error>) -> Void) {
@@ -241,7 +242,7 @@ class UserListingViewModel {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
             
             
-            var payload: [String: Any] = [
+            let payload: [String: Any] = [
                 "id": listingID,
                 "userID": userID,
                 "title": listing.title,
@@ -256,11 +257,9 @@ class UserListingViewModel {
                 "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
                 "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978335600),
                 "description": listing.description,
+                "storageID": listing.storageID ?? ""
             ]
-            
-//            if let imageURLs = imageURLs {
-//                payload["imageURLs"] = imageURLs
-//            }
+
             
             do {
                 request.httpBody = try JSONSerialization.data(withJSONObject: payload)
@@ -277,17 +276,17 @@ class UserListingViewModel {
                     return
                 }
                 DispatchQueue.main.async {
-                    if let i = self.listings.firstIndex(where:{ $0.id == listingID }) {
-                            var copy = listing
-//                            copy.imageURLs = imageURLs
-                            self.listings[i] = copy
-                        }
+                    Task {
+                        self.loadListings(for: userID)
                         completion(.success(()))
-                    self.loadListings(for: userID)
+                    }
                 }
             }.resume()
+
         }
+        sendEditRequest(with: nil)
     }
+    
     func deleteListing(listing: Listing) {
         guard let id = listing.id else { return }
         

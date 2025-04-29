@@ -117,7 +117,8 @@ struct EditListingView: View {
             numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
             startDateAvailible: startDateAvailable,
             lastDateAvailible: lastDateAvailable,
-            description: descriptionText
+            description: descriptionText,
+            storageID: listing.storageID ?? ""
         )
 
         userListingViewModel.editListing(for: userID, listing: updatedListing) { result in
