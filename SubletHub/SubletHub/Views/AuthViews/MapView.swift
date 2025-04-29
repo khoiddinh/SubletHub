@@ -76,8 +76,9 @@ struct MapView: View {
                     .scaleEffect(x: 1, y: -1)
             }
         }
-        .offset(y: -20)
+        .padding(16)
         .contentShape(Rectangle())
+        .offset(y: -20)
         .scaleEffect(selectedListing?.id == listing.id ? 1.2 : 1.0)
     }
     
