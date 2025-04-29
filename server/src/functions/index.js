@@ -10,6 +10,7 @@
 const {onRequest} = require("firebase-functions/v2/https");
 const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
+const { Timestamp } = require('firebase-admin/firestore');
 
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
@@ -146,6 +147,8 @@ exports.deleteListing = onRequest(async (req, res) => {
 });
 
 exports.updateListing = onRequest(async (req, res) => {
+    console.log("Received updateListing request with body:", JSON.stringify(req.body));
+
     try {
         const {
             id,
@@ -161,42 +164,56 @@ exports.updateListing = onRequest(async (req, res) => {
             numberOfBedroomsAvailable,
             startDateAvailible,
             lastDateAvailible,
-            description
+            description,
+            storageID
         } = req.body;
 
         if (!id || !userID) {
+            console.error("Missing id or userID in request body");
             return res.status(400).send("Missing id or userID");
         }
 
         const listingRef = db.collection("listings").doc(id);
+        console.log("Fetched listing reference for ID:", id);
+
         const listingDoc = await listingRef.get();
+        console.log("Fetched listing document. Exists:", listingDoc.exists);
 
         if (!listingDoc.exists) {
+            console.error("Listing not found for ID:", id);
             return res.status(404).send("Listing not found");
         }
 
-        if (listingDoc.data().userID !== userID) {
+        const listingData = listingDoc.data();
+        console.log("Listing document data:", listingData);
+
+        if (listingData.userID !== userID) {
+            console.error(`Unauthorized update attempt. Owner: ${listingData.userID}, Requestor: ${userID}`);
             return res.status(403).send("Unauthorized");
         }
 
+        console.log("Updating listing with new data...");
         await listingRef.update({
             title,
             price,
             address,
             latitude,
             longitude,
-            totalNumberOfBedrooms,
+            totalNumberOfBedrooms, 
             totalNumberOfBathrooms,
             totalSquareFootage,
             numberOfBedroomsAvailable,
-            startDateAvailible: admin.firestore.Timestamp.fromMillis(startDateAvailible),
-            lastDateAvailible: admin.firestore.Timestamp.fromMillis(lastDateAvailible),
-            description
+            startDateAvailible: startDateAvailible,
+            lastDateAvailible: lastDateAvailible,
+            description,
+            storageID,
         });
+        
 
+        console.log("Listing updated successfully for ID:", id);
         res.status(200).send("Listing updated successfully");
     } catch (error) {
-        console.error(error);
+        console.error("Error occurred during updateListing:", error);
         res.status(500).send("Internal Server Error: " + error.message);
     }
 });

@@ -76,13 +76,9 @@ struct MapView: View {
                     .scaleEffect(x: 1, y: -1)
             }
         }
-        .offset(y: -20)
+        .padding(16)
         .contentShape(Rectangle())
-        .onTapGesture {
-            withAnimation {
-                selectedListing = listing
-            }
-        }
+        .offset(y: -20)
         .scaleEffect(selectedListing?.id == listing.id ? 1.2 : 1.0)
     }
     
@@ -91,49 +87,54 @@ struct MapView: View {
 struct ListingPopupView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let listing: Listing
+    let listing: Listing  // original passed in (can't mutate this)
+    @State private var loadedListing: Listing  // mutable copy
+
+    init(listing: Listing) {
+        self.listing = listing
+        _loadedListing = State(initialValue: listing)
+    }
 
     var body: some View {
         VStack(spacing: 16) {
-            // Placeholder image – swap in AsyncImage when you have URLs
-            Rectangle()
-                .fill(Color.gray.opacity(0.3))
-                .frame(height: 180)
-                .overlay(Text("Image Placeholder"))
+            ListingCard(listing: loadedListing)
 
-            VStack(alignment: .leading, spacing: 8) {
-                Text(listing.title)
-                    .font(.headline)
-                Text("$\(listing.price) / month")
-                    .font(.subheadline)
-                    .foregroundColor(.green)
-                HStack {
-                    Text("\(listing.numberOfBedroomsAvailable) bd")
-                    Text("•")
-                    Text("\(listing.totalNumberOfBathrooms) ba")
-                    Text("•")
-                    Text("\(listing.totalSquareFootage) ft²")
+            if !loadedListing.image.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(loadedListing.image.enumerated()), id: \.offset) { (_, uiImage) in
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: UIScreen.main.bounds.width*0.95, height: 250)
+                                .clipped()
+                                .cornerRadius(10)
+                        }
+                    }
+                    .padding(.vertical)
                 }
-                .font(.footnote)
-                .foregroundColor(.secondary)
             }
+
 
             Spacer()
 
             NavigationLink("View Details") {
-                            ListingDetailView(listing: listing)
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .padding()
-                    .navigationTitle("Preview")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("Close") {
-                                dismiss()
-                            }
-                        }
-                    }
+                MapListingDetailView(listing: loadedListing)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .navigationTitle("Preview")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Close") {
+                    dismiss()
                 }
             }
+        }
+        .task {
+            loadedListing = await listing.loadingImages()
+        }
+    }
+}

@@ -17,6 +17,7 @@ struct ListingDetailView: View {
     @State private var navigateToEdit: Bool = false
     
     @Environment(\.dismiss) var dismiss
+    @Environment(UserListingViewModel.self) var userListingViewModel
 
     var body: some View {
         ScrollView {
@@ -205,7 +206,10 @@ struct ListingDetailView: View {
             loadUserInfo()
         }
         .alert("Delete Listing?", isPresented: $showDeleteConfirmation) {
-            Button("Delete", role: .destructive, action: deleteListing)
+            Button("Delete", role: .destructive, action: {
+                userListingViewModel.deleteListing(listing: listing)
+                dismiss()
+            })
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("Are you sure you want to permanently delete this listing?")
@@ -222,43 +226,7 @@ struct ListingDetailView: View {
             self.userEmail = email
         }
     }
-    
-    private func deleteListing() {
-        guard let id = listing.id else { return }
-        
-        guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/deleteListing?id=\(id)") else {
-            print("Invalid delete URL")
-            return
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET" // Cloud Function expects GET with query param
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Network error deleting listing:", error.localizedDescription)
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("Invalid response deleting listing.")
-                return
-            }
-            
-            if httpResponse.statusCode == 200 {
-                print("Listing deleted successfully.")
-                DispatchQueue.main.async {
-                    dismiss() // Dismiss the view after successful deletion
-                }
-            } else {
-                if let data = data, let errorMessage = String(data: data, encoding: .utf8) {
-                    print("Delete failed: \(errorMessage)")
-                } else {
-                    print("Delete failed with status code:", httpResponse.statusCode)
-                }
-            }
-        }.resume()
-    }
 
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
@@ -267,28 +235,3 @@ struct ListingDetailView: View {
     }
 }
 
-extension Listing {
-
-    func loadingImages() async -> Listing {
-        guard let sid = storageID else { return self }
-
-        let folderRef = Storage.storage()
-                               .reference(withPath: "listings/\(sid)")
-        var copy = self                                         // ← var
-
-        do {
-            let result = try await folderRef.listAll()
-            let sorted = result.items.sorted { $0.name < $1.name }
-
-            for ref in sorted {
-                if let data = try? await ref.data(maxSize: 4 * 1024 * 1024),
-                   let img  = UIImage(data: data) {
-                    copy.image.append(img)
-                }
-            }
-        } catch {
-            print("image error:", error.localizedDescription)
-        }
-        return copy
-    }
-}

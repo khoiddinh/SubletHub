@@ -117,10 +117,10 @@ struct EditListingView: View {
             numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
             startDateAvailible: startDateAvailable,
             lastDateAvailible: lastDateAvailable,
-            description: descriptionText
+            description: descriptionText,
+            storageID: listing.storageID ?? ""
         )
 
-        // 🛠️ Call the UserListingViewModel to edit listing
         userListingViewModel.editListing(for: userID, listing: updatedListing) { result in
             DispatchQueue.main.async {
                 isSaving = false

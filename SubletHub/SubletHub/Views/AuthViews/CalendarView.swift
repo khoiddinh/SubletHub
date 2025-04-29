@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct CalendarView: View {
-    var startDate: Date
-    var endDate: Date
+    let startDate: Date
+    let endDate: Date
 
     @State private var selectedDate: Date
 
@@ -13,11 +13,10 @@ struct CalendarView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: 16) {
             Text("Availability Calendar")
                 .font(.headline)
                 .foregroundColor(.secondary)
-                .padding(.bottom, 4)
 
             DatePicker(
                 "",
@@ -27,10 +26,14 @@ struct CalendarView: View {
             )
             .datePickerStyle(.graphical)
             .disabled(true)
-            .frame(maxHeight: 400)
-            .environment(\.calendar, Calendar(identifier: .gregorian)) // Force Gregorian Calendar
-            .environment(\.timeZone, TimeZone(secondsFromGMT: 0)!) // Force UTC TimeZone
+            .frame(maxHeight: 350)
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
+        .padding(.horizontal, 16)
     }
 }
 
