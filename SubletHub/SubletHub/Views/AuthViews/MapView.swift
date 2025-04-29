@@ -91,23 +91,45 @@ struct MapView: View {
 struct ListingPopupView: View {
     @Environment(\.dismiss) private var dismiss
 
-    let listing: Listing
+    let listing: Listing  // original passed in (can't mutate this)
+    @State private var loadedListing: Listing  // mutable copy
+
+    init(listing: Listing) {
+        self.listing = listing
+        _loadedListing = State(initialValue: listing)
+    }
 
     var body: some View {
         VStack(spacing: 16) {
+        
+            if !loadedListing.image.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(Array(loadedListing.image.enumerated()), id: \.offset) { (_, uiImage) in
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(width: UIScreen.main.bounds.width*0.95, height: 250)
+                                .clipped()
+                                .cornerRadius(10)
+                        }
+                    }
+                    .padding(.vertical)
+                }
+            }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text(listing.title)
+                Text(loadedListing.title)
                     .font(.headline)
-                Text("$\(listing.price) / month")
+                Text("$\(loadedListing.price) / month")
                     .font(.subheadline)
                     .foregroundColor(.green)
                 HStack {
-                    Text("\(listing.numberOfBedroomsAvailable) bd")
+                    Text("\(loadedListing.numberOfBedroomsAvailable) bd")
                     Text("•")
-                    Text("\(listing.totalNumberOfBathrooms) ba")
+                    Text("\(loadedListing.totalNumberOfBathrooms) ba")
                     Text("•")
-                    Text("\(listing.totalSquareFootage) ft²")
+                    Text("\(loadedListing.totalSquareFootage) ft²")
                 }
                 .font(.footnote)
                 .foregroundColor(.secondary)
@@ -116,19 +138,22 @@ struct ListingPopupView: View {
             Spacer()
 
             NavigationLink("View Details") {
-                            ListingDetailView(listing: listing)
-                        }
-                        .buttonStyle(.borderedProminent)
-                    }
-                    .padding()
-                    .navigationTitle("Preview")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar {
-                        ToolbarItem(placement: .navigationBarLeading) {
-                            Button("Close") {
-                                dismiss()
-                            }
-                        }
-                    }
+                ListingDetailView(listing: loadedListing)
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .navigationTitle("Preview")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button("Close") {
+                    dismiss()
                 }
             }
+        }
+        .task {
+            loadedListing = await listing.loadingImages()
+        }
+    }
+}
