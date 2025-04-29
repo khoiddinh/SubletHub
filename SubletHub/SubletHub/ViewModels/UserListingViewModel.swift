@@ -53,6 +53,7 @@ class UserListingViewModel {
                 }
             }
         }.resume()
+        
     }
     
     private func uploadImages(images: [UIImage], storageID: String) async throws {
@@ -105,8 +106,9 @@ class UserListingViewModel {
                     "totalNumberOfBathrooms":     listing.totalNumberOfBathrooms,
                     "totalSquareFootage":         listing.totalSquareFootage,
                     "numberOfBedroomsAvailable":  listing.numberOfBedroomsAvailable,
-                    "startDateAvailible":         Int(listing.startDateAvailible.timeIntervalSince1970 * 1_000),
-                    "lastDateAvailible":          Int(listing.lastDateAvailible.timeIntervalSince1970 * 1_000),
+                    "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
+                    "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978285600),
+
                     "description":                listing.description,
                     "storageID":                  listing.storageID!
                 ]
@@ -130,6 +132,7 @@ class UserListingViewModel {
                     newListing.userID  = uid
                     self.listings.insert(newListing, at: 0)
                     completion(.success(()))
+                    self.loadListings(for: uid)
                 }
             } catch {
                 
@@ -160,8 +163,8 @@ class UserListingViewModel {
             "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
             "totalSquareFootage": listing.totalSquareFootage,
             "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
-            "startDateAvailible": listing.startDateAvailible.timeIntervalSince1970,
-            "lastDateAvailible": listing.lastDateAvailible.timeIntervalSince1970,
+            "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
+            "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978335600),
             "description": listing.description
         ]
         
@@ -251,8 +254,8 @@ class UserListingViewModel {
                 "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
                 "totalSquareFootage": listing.totalSquareFootage,
                 "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
-                "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970),
-                "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970),
+                "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
+                "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978335600),
                 "description": listing.description,
             ]
             
@@ -281,6 +284,7 @@ class UserListingViewModel {
                             self.listings[i] = copy
                         }
                         completion(.success(()))
+                    self.loadListings(for: userID)
                 }
             }.resume()
         }
