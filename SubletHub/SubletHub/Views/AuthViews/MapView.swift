@@ -101,6 +101,9 @@ struct ListingPopupView: View {
 
     var body: some View {
         VStack(spacing: 16) {
+            Text(loadedListing.title)
+                .font(.title3)
+                .fontWeight(.bold)
         
             if !loadedListing.image.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -119,26 +122,42 @@ struct ListingPopupView: View {
             }
 
             VStack(alignment: .leading, spacing: 8) {
-                Text(loadedListing.title)
-                    .font(.headline)
+
+                
                 Text("$\(loadedListing.price) / month")
-                    .font(.subheadline)
+                    .font(.headline)
                     .foregroundColor(.green)
                 HStack {
                     Text("\(loadedListing.numberOfBedroomsAvailable) bd")
+                        .font(.subheadline)
                     Text("•")
+                        .font(.subheadline)
                     Text("\(loadedListing.totalNumberOfBathrooms) ba")
+                        .font(.subheadline)
                     Text("•")
+                        .font(.subheadline)
                     Text("\(loadedListing.totalSquareFootage) ft²")
+                        .font(.subheadline)
                 }
                 .font(.footnote)
                 .foregroundColor(.secondary)
             }
+            .padding()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
+            )
+            
 
             Spacer()
 
-            NavigationLink("View Details") {
-                ListingDetailView(listing: loadedListing)
+            NavigationLink(destination: ListingDetailView(listing: loadedListing)) {
+                Text("View Details")
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
             }
             .buttonStyle(.borderedProminent)
         }
