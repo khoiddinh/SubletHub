@@ -108,7 +108,6 @@ class UserListingViewModel {
                     "numberOfBedroomsAvailable":  listing.numberOfBedroomsAvailable,
                     "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
                     "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978285600),
-
                     "description":                listing.description,
                     "storageID":                  listing.storageID!
                 ]
@@ -288,5 +287,45 @@ class UserListingViewModel {
                 }
             }.resume()
         }
+    }
+    func deleteListing(listing: Listing) {
+        guard let id = listing.id else { return }
+        
+        guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/deleteListing?id=\(id)") else {
+            print("Invalid delete URL")
+            return
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if let error = error {
+                print("Network error deleting listing:", error.localizedDescription)
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("Invalid response deleting listing.")
+                return
+            }
+            
+            if httpResponse.statusCode == 200 {
+                print("Listing deleted successfully.")
+
+                DispatchQueue.main.async {
+                    if let userID = listing.userID {
+                        self.listings.removeAll { $0.id == id }
+                        PersistenceManager.shared.saveUserListings(self.listings, for: userID)
+                    }
+                }
+            } else {
+                if let data = data, let errorMessage = String(data: data, encoding: .utf8) {
+                    print("Delete failed: \(errorMessage)")
+                } else {
+                    print("Delete failed with status code:", httpResponse.statusCode)
+                }
+            }
+        }.resume()
     }
 }

@@ -120,7 +120,6 @@ struct EditListingView: View {
             description: descriptionText
         )
 
-        // 🛠️ Call the UserListingViewModel to edit listing
         userListingViewModel.editListing(for: userID, listing: updatedListing) { result in
             DispatchQueue.main.async {
                 isSaving = false

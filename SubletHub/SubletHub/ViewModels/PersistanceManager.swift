@@ -28,19 +28,22 @@ class PersistenceManager {
   }
 
   // Generic load
-  func load(from filename: String) -> [Listing]? {
-    let fileURL = url(for: filename)
-    guard FileManager.default.fileExists(atPath: fileURL.path) else {
-      return nil
+    func load(from filename: String) -> [Listing]? {
+        let fileURL = url(for: filename)
+        guard FileManager.default.fileExists(atPath: fileURL.path) else {
+          return nil
+        }
+        do {
+          let data = try Data(contentsOf: fileURL)
+          let decoder = JSONDecoder()
+          decoder.dateDecodingStrategy = .secondsSince1970 
+          return try decoder.decode([Listing].self, from: data)
+        } catch {
+          print("Persistence load error:", error)
+          return nil
+        }
     }
-    do {
-      let data = try Data(contentsOf: fileURL)
-      return try JSONDecoder().decode([Listing].self, from: data)
-    } catch {
-      print("Persistence load error:", error)
-      return nil
-    }
-  }
+
 
   // Convenience wrappers
   func saveAllListings(_ listings: [Listing]) {

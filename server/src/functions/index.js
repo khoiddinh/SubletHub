@@ -189,8 +189,8 @@ exports.updateListing = onRequest(async (req, res) => {
             totalNumberOfBathrooms,
             totalSquareFootage,
             numberOfBedroomsAvailable,
-            startDateAvailible: admin.firestore.Timestamp.fromMillis(startDateAvailible),
-            lastDateAvailible: admin.firestore.Timestamp.fromMillis(lastDateAvailible),
+            startDateAvailible: admin.firestore.Timestamp.fromSeconds(startDateAvailible),
+            lastDateAvailible: admin.firestore.Timestamp.fromSeconds(lastDateAvailible),
             description
         });
 

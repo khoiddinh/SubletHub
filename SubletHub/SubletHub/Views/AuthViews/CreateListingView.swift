@@ -232,7 +232,6 @@ struct CreateListingView: View {
             numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
             startDateAvailible: startDateAvailable,
             lastDateAvailible: lastDateAvailable,
-//            image: selectedImages,
             description: listingDescription,
             storageID: storageID
             

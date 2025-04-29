@@ -29,34 +29,31 @@ struct ListingCard: View {
                             .clipped()
                             .cornerRadius(12)
                     case .failure:
-                        Image(systemName: "photo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(height: 120)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(12)
+                        EmptyView()
                     @unknown default:
                         EmptyView()
                     }
                 }
             }
-
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(listing.title)
                     .font(.headline)
+                    .foregroundColor(.primary)
                     .lineLimit(1)
-
+                
                 Text("$\(listing.price) / month")
                     .font(.subheadline)
                     .foregroundColor(.green)
-
+                
                 Text(listing.address)
                     .font(.footnote)
                     .foregroundColor(.secondary)
                     .lineLimit(1)
             }
-            .frame(maxHeight: .infinity, alignment: .top) // stretch text area
+            .frame(maxWidth: .infinity, alignment: .leading) // left align text
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
         }
         .frame(maxWidth: .infinity)
         .padding()
