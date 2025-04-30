@@ -7,7 +7,7 @@
 import SwiftUI
 
 struct EditProfileView: View {
-    @Environment(AuthViewModel.self) var authVM
+    @EnvironmentObject var authViewModel: AuthViewModel
     @Environment(\.dismiss) var dismiss
 
     @State private var firstName: String = ""
@@ -23,7 +23,7 @@ struct EditProfileView: View {
             }
 
             Section(header: Text("Email")) {
-                if let email = authVM.user?.email {
+                if let email = authViewModel.user?.email {
                     Text(email)
                         .foregroundColor(.gray)
                 }
@@ -46,7 +46,7 @@ struct EditProfileView: View {
         }
         .navigationTitle("Edit Profile")
         .onAppear {
-            if let displayName = authVM.user?.displayName {
+            if let displayName = authViewModel.user?.displayName {
                 let parts = displayName.split(separator: " ")
                 if parts.count >= 2 {
                     firstName = String(parts[0])
@@ -63,7 +63,7 @@ struct EditProfileView: View {
             isSaving = true
             error = nil
             do {
-                try await authVM.updateProfile(firstName: firstName, lastName: lastName)
+                try await authViewModel.updateProfile(firstName: firstName, lastName: lastName)
                 dismiss()
             } catch {
                 self.error = error.localizedDescription

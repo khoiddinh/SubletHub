@@ -8,8 +8,17 @@ struct CalendarView: View {
 
     init(startDate: Date, endDate: Date) {
         self.startDate = startDate
-        self.endDate = endDate
-        _selectedDate = State(initialValue: startDate)
+        self.endDate   = endDate
+
+        let today = Date()
+        let initial: Date
+        if today >= startDate && today <= endDate {
+            initial = today
+        } else {
+            initial = startDate
+        }
+
+        _selectedDate = State(initialValue: initial)
     }
 
     var body: some View {
@@ -36,4 +45,3 @@ struct CalendarView: View {
         .padding(.horizontal, 16)
     }
 }
-

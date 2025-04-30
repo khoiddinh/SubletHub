@@ -9,16 +9,17 @@ import CoreLocation
 import Observation
 import FirebaseAuth
 
-@Observable
-class ListingViewModel {
-    var listings: [Listing] = []
+import Combine
+final class ListingViewModel: ObservableObject {
+    @Published var listings: [Listing] = []
     
     init() {
         fetchData()
     }
     
+    static let shared = ListingViewModel()
+    
     func fetchData() {
-        // Loads any cached listings immediately
         if let cached = PersistenceManager.shared.loadAllListings() {
             DispatchQueue.main.async {
                 self.listings = cached

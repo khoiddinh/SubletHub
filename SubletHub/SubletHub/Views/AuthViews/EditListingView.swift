@@ -1,138 +1,186 @@
-//
-//  EditListingView.swift
-//  SubletHub
-//
-//  Created by Khoi Dinh on 4/26/25.
-//
-
-
 import SwiftUI
 
 struct EditListingView: View {
+    @EnvironmentObject private var userListingVM: UserListingViewModel
+    @EnvironmentObject private var authVM: AuthViewModel
     @Environment(\.dismiss) private var dismiss
-    @Environment(UserListingViewModel.self) var userListingViewModel
-    @Environment(AuthViewModel.self) var authViewModel
-    
-    var listing: Listing
 
+    // MARK: – Form State
     @State private var title: String
-    @State private var price: String
+    @State private var price: Double
     @State private var address: String
-    @State private var totalBedrooms: String
-    @State private var totalBathrooms: String
-    @State private var squareFootage: String
-    @State private var availableBedrooms: String
+    @State private var totalBedrooms: Int
+    @State private var totalBathrooms: Int
+    @State private var squareFootage: Int
+    @State private var availableBedrooms: Int
     @State private var descriptionText: String
-    @State private var startDateAvailable: Date
-    @State private var lastDateAvailable: Date
-    
+    @State private var startDate: Date
+    @State private var endDate: Date
+
     @State private var isSaving = false
-    @State private var errorMessage: String?
+    @State private var alertMessage: String?
+    @State private var showAlert = false
+
+
+    private let original: Listing
 
     init(listing: Listing) {
-        self.listing = listing
-        _title = State(initialValue: listing.title)
-        _price = State(initialValue: "\(listing.price)")
-        _address = State(initialValue: listing.address)
-        _totalBedrooms = State(initialValue: "\(listing.totalNumberOfBedrooms)")
-        _totalBathrooms = State(initialValue: "\(listing.totalNumberOfBathrooms)")
-        _squareFootage = State(initialValue: "\(listing.totalSquareFootage)")
-        _availableBedrooms = State(initialValue: "\(listing.numberOfBedroomsAvailable)")
-        _descriptionText = State(initialValue: listing.description)
-        _startDateAvailable = State(initialValue: listing.startDateAvailible)
-        _lastDateAvailable = State(initialValue: listing.lastDateAvailible)
+        self.original = listing
+
+        // initialize form state from the passed-in model
+        _title             = State(initialValue: listing.title)
+        _price             = State(initialValue: listing.price)
+        _address           = State(initialValue: listing.address)
+        _totalBedrooms     = State(initialValue: listing.totalNumberOfBedrooms)
+        _totalBathrooms    = State(initialValue: listing.totalNumberOfBathrooms)
+        _squareFootage     = State(initialValue: listing.totalSquareFootage)
+        _availableBedrooms = State(initialValue: listing.numberOfBedroomsAvailable)
+        _descriptionText   = State(initialValue: listing.description)
+        _startDate         = State(initialValue: listing.startDateAvailible)
+        _endDate           = State(initialValue: listing.lastDateAvailible)
+    }
+
+    // Simple form‐validity check
+    private var isFormValid: Bool {
+        !title.trimmingCharacters(in: .whitespaces).isEmpty
+        && price > 0
+        && totalBedrooms >= 0
+        && totalBathrooms >= 0
+        && squareFootage >= 0
+        && availableBedrooms >= 0
+        && !address.trimmingCharacters(in: .whitespaces).isEmpty
+        && startDate <= endDate
     }
 
     var body: some View {
         Form {
-            Section(header: Text("Listing Details")) {
+            Section("Listing Details") {
                 TextField("Title", text: $title)
-                TextField("Price", text: $price)
-                    .keyboardType(.numberPad)
+
+                // Price as currency with zero decimals
+                TextField(
+                  "Price",
+                  value: $price,
+                  format: .currency(code: "USD")
+                    .precision(.fractionLength(0))
+                )
+                .keyboardType(.decimalPad)
+
                 TextField("Address", text: $address)
-                TextField("Total Bedrooms", text: $totalBedrooms)
-                    .keyboardType(.numberPad)
-                TextField("Total Bathrooms", text: $totalBathrooms)
-                    .keyboardType(.numberPad)
-                TextField("Square Footage", text: $squareFootage)
-                    .keyboardType(.numberPad)
-                TextField("Available Bedrooms", text: $availableBedrooms)
-                    .keyboardType(.numberPad)
+                TextField(
+                  "Total Bedrooms",
+                  value: $totalBedrooms,
+                  format: .number.precision(.integerLength(1))
+                )
+                .keyboardType(.numberPad)
+
+                TextField(
+                  "Total Bathrooms",
+                  value: $totalBathrooms,
+                  format: .number.precision(.integerLength(1))
+                )
+                .keyboardType(.numberPad)
+
+                TextField(
+                  "Square Footage",
+                  value: $squareFootage,
+                  format: .number.precision(.integerLength(1))
+                )
+                .keyboardType(.numberPad)
+
+                TextField(
+                  "Bedrooms Available",
+                  value: $availableBedrooms,
+                  format: .number.precision(.integerLength(1))
+                )
+                .keyboardType(.numberPad)
             }
 
-            Section(header: Text("Availability Dates")) {
-                DatePicker("Start Date", selection: $startDateAvailable, displayedComponents: .date)
-                DatePicker("End Date", selection: $lastDateAvailable, displayedComponents: .date)
+            Section("Availability") {
+                DatePicker("Start", selection: $startDate, displayedComponents: .date)
+                DatePicker("End",   selection: $endDate,   displayedComponents: .date)
             }
 
-            Section(header: Text("Description")) {
+            Section("Description") {
                 TextEditor(text: $descriptionText)
-                    .frame(height: 150)
-            }
-
-            if let errorMessage = errorMessage {
-                Section {
-                    Text(errorMessage)
-                        .foregroundColor(.red)
-                        .font(.caption)
-                }
+                  .frame(minHeight: 100)
             }
 
             Section {
-                Button(isSaving ? "Saving..." : "Save Changes") {
-                    saveChanges()
+                Button {
+                    Task { await saveChanges() }
+                } label: {
+                    if isSaving {
+                        ProgressView()
+                    } else {
+                        Text("Save Changes")
+                    }
                 }
-                .disabled(isSaving)
+                .disabled(!isFormValid || isSaving)
             }
         }
         .navigationTitle("Edit Listing")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel", action: { dismiss() })
+            }
+        }
+        .alert("Error", isPresented: $showAlert) {
+          Button("OK", role: .cancel) {
+            showAlert = false
+          }
+        } message: {
+          Text(alertMessage ?? "")
+        }
     }
 
-    private func saveChanges() {
-        guard let userID = authViewModel.user?.uid else {
-            errorMessage = "User not logged in."
+    /private func saveChanges() {
+        guard let uid = authVM.user?.uid else {
+            alertMessage = "You must be logged in to edit."
+            showAlert = true
             return
         }
-        guard let listingID = listing.id else {
-            errorMessage = "Invalid listing ID."
+        guard let listingID = original.id else {
+            alertMessage = "Invalid listing ID."
+            showAlert = true
             return
         }
 
+        // 2) Begin saving
         isSaving = true
-        errorMessage = nil
+        alertMessage = nil
 
-        // Build updated Listing object
-        let updatedListing = Listing(
-            id: listingID,
-            userID: userID,
-            title: title,
-            price: Int(price) ?? 0,
-            address: address,
-            latitude: listing.latitude, // reuse original lat/lng unless editing
-            longitude: listing.longitude,
-            totalNumberOfBedrooms: Int(totalBedrooms) ?? 0,
-            totalNumberOfBathrooms: Int(totalBathrooms) ?? 0,
-            totalSquareFootage: Int(squareFootage) ?? 0,
-            numberOfBedroomsAvailable: Int(availableBedrooms) ?? 0,
-            startDateAvailible: startDateAvailable,
-            lastDateAvailible: lastDateAvailable,
-            description: descriptionText,
-            storageID: listing.storageID ?? ""
-        )
+        var updated = original
+        updated.title                     = title
+        updated.price                     = price
+        updated.address                   = address
+        updated.totalNumberOfBedrooms     = totalBedrooms
+        updated.totalNumberOfBathrooms    = totalBathrooms
+        updated.totalSquareFootage        = squareFootage
+        updated.numberOfBedroomsAvailable = availableBedrooms
+        updated.startDateAvailible        = startDate
+        updated.lastDateAvailible         = endDate
+        updated.description               = descriptionText
+        updated.userID                    = uid
 
-        userListingViewModel.editListing(for: userID, listing: updatedListing) { result in
+        userListingVM.editListing(for: uid, listing: updated) { result in
             DispatchQueue.main.async {
+                // Stop the spinner
                 isSaving = false
+
                 switch result {
                 case .success:
-                    print("Successfully edited listing!")
+                    // On success, dismiss
                     dismiss()
+
                 case .failure(let error):
-                    print("Failed to edit listing:", error.localizedDescription)
-                    errorMessage = "Failed to save changes. Try again."
+                    // On error, show the alert
+                    alertMessage = "Failed to save: \(error.localizedDescription)"
+                    showAlert = true
                 }
             }
         }
     }
+
 }

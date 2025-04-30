@@ -6,28 +6,30 @@
 //
 import FirebaseAuth
 import Observation
+import Combine
 
-@Observable
-class AuthViewModel {
-    var user: User?
-    var error: String?
+final class AuthViewModel: ObservableObject {
+    @Published var user: User?      // ← mark published
+    @Published var error: String?   // ← so you can react to errors, too
+
     private var handle: AuthStateDidChangeListenerHandle?
-    
+
     init() {
-        listen()
+      listen()
     }
 
-    func listen() {
-        handle = Auth.auth().addStateDidChangeListener { _, user in
-            self.user = user
+    private func listen() {
+      handle = Auth.auth()
+        .addStateDidChangeListener { _, user in
+          self.user = user
         }
     }
 
     func login(email: String, password: String) async throws {
-        let result = try await Auth.auth().signIn(withEmail: email, password: password)
-        self.user = result.user
+      let result = try await Auth.auth()
+        .signIn(withEmail: email, password: password)
+      self.user = result.user
     }
-
     func signUp(firstName: String, lastName: String, email: String, password: String) async throws {
         do {
             let result = try await Auth.auth().createUser(withEmail: email, password: password)

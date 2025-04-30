@@ -14,7 +14,7 @@ struct SearchBar: View {
     @State var latitude: Double?
     @State var longitude: Double?
     
-    @Binding var addressVM: AddressAutocompleteViewModel
+    @ObservedObject var addressVM: AddressAutocompleteViewModel
     @Binding var position: MapCameraPosition
 
     var body: some View {

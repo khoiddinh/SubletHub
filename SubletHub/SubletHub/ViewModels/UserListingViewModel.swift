@@ -10,14 +10,12 @@ import Foundation
 import Observation
 import FirebaseStorage
 
-@Observable
-class UserListingViewModel {
+import Combine
+
+final class UserListingViewModel: ObservableObject {
+  @Published var listings: [Listing] = []
     
-    var listings: [Listing] = []
-    
-    // Load listings: first from cache, then from server
     func loadListings(for userID: String) {
-        // Load cached user listings
         if let cached = PersistenceManager.shared.loadUserListings(for: userID) {
             DispatchQueue.main.async {
                 self.listings = cached
@@ -92,7 +90,7 @@ class UserListingViewModel {
             do {
                 if !images.isEmpty {
                     try await uploadImages(images: images,
-                                           storageID: listing.storageID!)
+                                           storageID: listing.storageID)
                 }
                 
                 let body: [String: Any] = [
@@ -106,10 +104,10 @@ class UserListingViewModel {
                     "totalNumberOfBathrooms":     listing.totalNumberOfBathrooms,
                     "totalSquareFootage":         listing.totalSquareFootage,
                     "numberOfBedroomsAvailable":  listing.numberOfBedroomsAvailable,
-                    "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
-                    "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978285600),
+                    "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970),
+                    "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970),
                     "description":                listing.description,
-                    "storageID":                  listing.storageID!
+                    "storageID":                  listing.storageID
                 ]
                 guard let url = URL(string:
                                         "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/createListing")
@@ -162,10 +160,10 @@ class UserListingViewModel {
             "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
             "totalSquareFootage": listing.totalSquareFootage,
             "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
-            "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
-            "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978335600),
+            "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970),
+            "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970),
             "description": listing.description,
-            "storageID": listing.storageID ?? ""
+            "storageID": listing.storageID
         ]
         
         do {
@@ -254,10 +252,10 @@ class UserListingViewModel {
                 "totalNumberOfBathrooms": listing.totalNumberOfBathrooms,
                 "totalSquareFootage": listing.totalSquareFootage,
                 "numberOfBedroomsAvailable": listing.numberOfBedroomsAvailable,
-                "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970 - 978335600),
-                "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970 - 978335600),
+                "startDateAvailible": Int(listing.startDateAvailible.timeIntervalSince1970),
+                "lastDateAvailible": Int(listing.lastDateAvailible.timeIntervalSince1970),
                 "description": listing.description,
-                "storageID": listing.storageID ?? ""
+                "storageID": listing.storageID
             ]
 
             
@@ -287,44 +285,36 @@ class UserListingViewModel {
         sendEditRequest(with: nil)
     }
     
-    func deleteListing(listing: Listing) {
-        guard let id = listing.id else { return }
-        
-        guard let url = URL(string: "https://us-central1-\(Config.PROJECT_ID).cloudfunctions.net/deleteListing?id=\(id)") else {
-            print("Invalid delete URL")
-            return
+    func deleteListing(listing: Listing,
+                       completion: @escaping (Result<Void,Error>) -> Void) {
+      guard let id = listing.id,
+            let uid = listing.userID else {
+        completion(.failure(URLError(.badURL)))
+        return
+      }
+      
+      
+      let urlString =
+        "https://us-central1-\(Config.PROJECT_ID)"
+        + ".cloudfunctions.net/deleteListing?id=\(id)"
+      guard let url = URL(string: urlString) else {
+        completion(.failure(URLError(.badURL)))
+        return
+      }
+
+      // fire off the request
+      URLSession.shared.dataTask(with: url) { _, _, error in
+        if let error = error {
+          completion(.failure(error))
+        } else {
+          DispatchQueue.main.async {
+            self.listings.removeAll { $0.id == id }
+            PersistenceManager.shared.saveUserListings(self.listings, for: uid)
+            completion(.success(()))
+          }
         }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            if let error = error {
-                print("Network error deleting listing:", error.localizedDescription)
-                return
-            }
-            
-            guard let httpResponse = response as? HTTPURLResponse else {
-                print("Invalid response deleting listing.")
-                return
-            }
-            
-            if httpResponse.statusCode == 200 {
-                print("Listing deleted successfully.")
-
-                DispatchQueue.main.async {
-                    if let userID = listing.userID {
-                        self.listings.removeAll { $0.id == id }
-                        PersistenceManager.shared.saveUserListings(self.listings, for: userID)
-                    }
-                }
-            } else {
-                if let data = data, let errorMessage = String(data: data, encoding: .utf8) {
-                    print("Delete failed: \(errorMessage)")
-                } else {
-                    print("Delete failed with status code:", httpResponse.statusCode)
-                }
-            }
-        }.resume()
+      }
+      .resume()
     }
+
 }

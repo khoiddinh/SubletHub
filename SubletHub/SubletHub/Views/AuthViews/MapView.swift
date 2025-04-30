@@ -8,8 +8,9 @@ struct MapView: View {
             span: MKCoordinateSpan(latitudeDelta: 0.05, longitudeDelta: 0.05)
         )
     )
-    @State private var viewModel = ListingViewModel()
-    @State private var addressVM = AddressAutocompleteViewModel()
+    @StateObject private var viewModel = ListingViewModel()
+    @StateObject private var addressVM = AddressAutocompleteViewModel()
+
     @State private var selectedListing: Listing? = nil
     
     
@@ -17,9 +18,8 @@ struct MapView: View {
         ZStack(alignment: .top) {
             listingsMap
                 .onAppear { viewModel.fetchData() }
-            SearchBar(addressVM: $addressVM, position: $position)
+            SearchBar(addressVM: addressVM, position: $position)
         }
-        // now only one sheet, no outer tap gesture to clear it
         .sheet(item: $selectedListing) { listing in
             NavigationStack {
                 ListingPopupView(listing: listing)
@@ -31,7 +31,6 @@ struct MapView: View {
         Map(position: $position, interactionModes: .all) {
             ForEach(viewModel.listings.filter { $0.id != nil }) { listing in
                 Annotation("", coordinate: listing.coordinate) {
-                    // wrap in a Button so taps are always recognized
                     Button {
                         withAnimation {
                             selectedListing = listing
@@ -55,7 +54,7 @@ struct MapView: View {
                     .frame(width: 60, height: 60)
             }
             VStack(spacing: 0) {
-                Text("$\(listing.price)")
+                Text(listing.price, format: .currency(code: "USD").precision(.fractionLength(0)))
                     .font(.subheadline)
                     .fontWeight(.bold)
                     .padding(.horizontal, 10)

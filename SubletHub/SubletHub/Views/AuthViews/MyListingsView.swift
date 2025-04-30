@@ -17,8 +17,8 @@ import SwiftUI
 
 struct MyListingsView: View {
     @State var path = NavigationPath()
-    @Environment(AuthViewModel.self) var authViewModel
-    @Environment(UserListingViewModel.self) var userListingViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var userListingViewModel: UserListingViewModel
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -52,7 +52,8 @@ struct MyListingsView: View {
             }
             .padding()
             .navigationDestination(for: Listing.self) { listing in
-                ListingDetailView(listing: listing)
+              ListingDetailView(listingID: listing.id!)
+                .environmentObject(userListingViewModel)
             }
         }
         .navigationTitle(Text("My Listings"))

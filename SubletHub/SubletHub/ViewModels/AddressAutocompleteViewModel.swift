@@ -8,9 +8,10 @@ import SwiftUI
 import MapKit
 import Observation
 
-@Observable
-class AddressAutocompleteViewModel: NSObject, MKLocalSearchCompleterDelegate {
-    var searchResults: [MKLocalSearchCompletion] = []
+import Combine
+final class AddressAutocompleteViewModel: NSObject, ObservableObject, MKLocalSearchCompleterDelegate {
+     // publish changes so SwiftUI re-renders
+    @Published var searchResults: [MKLocalSearchCompletion] = []
 
     private var completer = MKLocalSearchCompleter()
 

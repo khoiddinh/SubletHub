@@ -33,8 +33,9 @@ struct CreateListingView: View {
     @State private var suppressAutocomplete = false
     @State private var addressVM = AddressAutocompleteViewModel() // use distinct address vm
     
-    @Environment(AuthViewModel.self) var authViewModel
-    @Environment(UserListingViewModel.self) var userListingViewModel
+    @EnvironmentObject var authViewModel: AuthViewModel
+    @EnvironmentObject var userListingViewModel: UserListingViewModel
+
     @Environment(\.dismiss) var dismiss
     
     var body: some View {
@@ -222,7 +223,7 @@ struct CreateListingView: View {
             id: nil,
             userID: uid,
             title: title,
-            price: Int(price) ?? 0,
+            price: Double(Int(price) ?? 0),
             address: address,
             latitude: lat,
             longitude: lng,

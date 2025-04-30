@@ -42,7 +42,9 @@ struct ListingCard: View {
                     .foregroundColor(.primary)
                     .lineLimit(1)
                 
-                Text("$\(listing.price) / month")
+                Text(
+                  "\(listing.price, format: .currency(code: "USD").precision(.fractionLength(0))) / month"
+                )
                     .font(.subheadline)
                     .foregroundColor(.green)
                 

@@ -9,7 +9,7 @@ import SwiftUI
 import FirebaseAuth
 
 struct UserProfileCard: View {
-    @Environment(AuthViewModel.self) var authVM
+    @EnvironmentObject var authVM: AuthViewModel
     
     func getInitials(_ name: String) -> String {
         let components = name.split(separator: " ")
